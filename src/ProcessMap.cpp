@@ -5,10 +5,7 @@
 #include <string>
 #include <stdlib.h>
 #include <time.h>
-
-#define PRIMARY_THRESHOLD 180
-#define BLACK_THRESHOLD 65
-#define EPSILON 10
+#include "GeoAware.h"
 
 using namespace cv;
 using namespace std;
@@ -208,39 +205,13 @@ int main()
 	  cout << "Approx Size = " << approx.size() << " -> Actual Size = " << actual.size() << endl;
 	  vtc = actual.size();
 	  if(vtc==3)
-	    {
-	      setLabel(dst, string("TRI").append(convertInt(i)), contours[i]);
-	      //line(dst,actual[0],actual[1],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	      //line(dst,actual[1],actual[2],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	      //line(dst,actual[2],actual[0],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	    }
+	    setLabel(dst, string("TRI").append(convertInt(i)), contours[i]);
 	  if (vtc == 4)
-	    {
-	      setLabel(dst, string("RECT").append(convertInt(i)), contours[i]);
-	      //line(dst,actual[0],actual[1],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	      //line(dst,actual[1],actual[2],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	      //line(dst,actual[2],actual[3],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	      //line(dst,actual[3],actual[0],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	    }
+	    setLabel(dst, string("RECT").append(convertInt(i)), contours[i]);
 	  if (vtc == 5)
-	    {
-	      setLabel(dst, string("PENTA").append(convertInt(i)), contours[i]);
-	      //line(dst,actual[0],actual[1],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	      //line(dst,actual[1],actual[2],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	      //line(dst,actual[2],actual[3],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	      //line(dst,actual[3],actual[4],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	      //line(dst,actual[4],actual[0],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	    }
+	    setLabel(dst, string("PENTA").append(convertInt(i)), contours[i]);
 	  if (vtc == 6)
-	    {
-	      setLabel(dst, string("HEXA").append(convertInt(i)), contours[i]);
-	      //line(dst,actual[0],actual[1],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	      //line(dst,actual[1],actual[2],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	      //line(dst,actual[2],actual[3],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	      //line(dst,actual[3],actual[4],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	      //line(dst,actual[4],actual[5],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	      //line(dst,actual[5],actual[0],CV_RGB(rand()%255,rand()%255,rand()%255),3,8);
-	    }
+	    setLabel(dst, string("HEXA").append(convertInt(i)), contours[i]);
 	}
       else
 	{
