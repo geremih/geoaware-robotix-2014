@@ -17,14 +17,13 @@ class Landmark
   string color;
   int start,end;
   int action;
-
+  int idx;
+  
+  Landmark();
   Landmark(cv::Point2f, string sh , string clr , int st, int en);
   Landmark(const Landmark&);
   const Landmark& operator = (const Landmark&);
   friend ostream& operator<< (ostream& stream, const Landmark& landmark);
-  void setAction(int); 
-  void printInfo();
-
 };
 
 #endif

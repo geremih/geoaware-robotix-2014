@@ -7,4 +7,4 @@ HEADERS = GeoAware.h
 #	g++ $(CFLAGS) -o $@ $< $(LIBS)
 
 all : $(SOURCES) $(HEADERS)
-	g++ $(CFLAGS) -o GeoAware $(SOURCES) $(LIBS)
+	g++ -g $(CFLAGS) -o GeoAware $(SOURCES) $(LIBS)

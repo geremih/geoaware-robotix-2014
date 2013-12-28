@@ -1,10 +1,13 @@
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#ifndef GEOAWARE_H
+#define GEOAWARE_H
+
+#include <opencv2/opencv.hpp>
 #include <cmath>
 #include <iostream>
 #include <string>
 #include <stdlib.h>
 #include <time.h>
+#include <map>
 
 #define CIRCLE 1
 #define TRIANGLE 3
@@ -12,10 +15,10 @@
 #define PENTAGON 5
 #define HEXAGON 6
 
-#define BLUE 1
-#define GREEN 2
-#define RED 3
-
-#define PRIMARY_THRESHOLD 180
+#define PRIMARY_THRESHOLD 69
 #define BLACK_THRESHOLD 65
 #define EPSILON 10
+
+std::map<int,std::string> vtxToShape;
+
+#endif
