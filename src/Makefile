@@ -1,7 +1,7 @@
 CFLAGS = `pkg-config --cflags opencv`
 LIBS = `pkg-config --libs opencv`
-SOURCES = ProcessMap.cpp Landmark.cpp
-HEADERS = GeoAware.h
+SOURCES = Main.cpp Map.cpp Landmark.cpp
+HEADERS = GeoAware.h Map.h Landmark.h
 
 #% : %.cpp
 #	g++ $(CFLAGS) -o $@ $< $(LIBS)

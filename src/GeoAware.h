@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <map>
+#include <vector>
 
 #define CIRCLE 1
 #define TRIANGLE 3
@@ -18,7 +19,5 @@
 #define PRIMARY_THRESHOLD 69
 #define BLACK_THRESHOLD 65
 #define EPSILON 10
-
-std::map<int,std::string> vtxToShape;
 
 #endif

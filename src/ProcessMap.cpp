@@ -4,6 +4,7 @@
 using namespace cv;
 using namespace std;
 
+
 /**
  * Helper function to find a cosine of angle between vectors
  * from pt0->pt1 and pt0->pt2
@@ -298,7 +299,7 @@ int main()
 
   srand (time(NULL));
   
-  const string path = "../assets/map3.png";
+  const string path = "../assets/map1.png";
   cv::Mat img_src = cv::imread(path);
   if (img_src.empty())
     return -1;
@@ -329,7 +330,7 @@ int main()
   // approx holds an individual contour found by approxPolyDP
   std::vector<cv::Point> approx;
   
-  // actual removes the small edges from approx so that actual shape is obtained
+  // actual removes the small edges from approx so that the intended shape is obtained
   std::vector<cv::Point> actual;
  
   // Vector of all the landmarks
@@ -402,10 +403,6 @@ int main()
   fillAdjMat(adjMat,landmarks,img_arena);
   drawConnections(img_connections,landmarks,adjMat);
   
-  cv::imshow("landmarks", img_landmarks);
-  cv::imshow("src", img_src);
-  //cv::imshow("bw", img_bw);
-  //cv::imshow("dst", img_dst);
   cv::imshow("connections",img_connections);
 
   cv::waitKey(0);
