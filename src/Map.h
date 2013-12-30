@@ -15,10 +15,13 @@ class Map
   cv::Mat img_arena;
   std::vector<Landmark> landmarks;
   
+  Map();
   Map(const string path);
+  Map(const Map&);
   void printLandmarks();
   void displayMap();
-  
+  const Map& operator = (const Map&);
+
  private:
   cv::Mat obtainLandmarksImg();
   cv::Mat obtainArenaImg();

@@ -3,6 +3,11 @@
 using namespace std;
 using namespace cv;
 
+Map::Map()
+{
+  cout << "Calling empty Map constructor" << endl;
+}
+
 Map::Map(const string path)
 {
   img_src = cv::imread(path);
@@ -14,6 +19,14 @@ Map::Map(const string path)
   img_landmarks = obtainLandmarksImg();
   img_arena = obtainArenaImg();
   landmarks = getLandmarks();
+}
+
+Map::Map(const Map& M)
+{
+  img_src = M.img_src.clone();
+  img_landmarks = M.img_landmarks.clone();
+  img_arena = M.img_arena.clone();
+  landmarks = M.landmarks;
 }
 
 cv::Mat Map::obtainLandmarksImg()
@@ -225,6 +238,15 @@ void Map::displayMap()
   cv::imshow("landmarks",img_landmarks);
 }
 
+const Map& Map::operator = (const Map& m)
+{
+  img_src = m.img_src;
+  img_landmarks = m.img_landmarks;
+  img_arena = m.img_arena;
+  landmarks = m.landmarks;
+  
+  return *this;
+}
 // STATIC FUNCTIONS :
 
 string Map::vtxToShape(int vtc)

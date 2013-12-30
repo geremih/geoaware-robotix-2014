@@ -4,20 +4,16 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <string>
+#include "Waypoint.h"
 
 using namespace std;
 
-class Landmark
+class Landmark : public Waypoint
 {
 
  public:
-
-  cv::Point2f centroid;
   string shape;
   string color;
-  int start,end;
-  int action;
-  int idx;
   
   Landmark();
   Landmark(cv::Point2f, string sh , string clr , int st, int en);

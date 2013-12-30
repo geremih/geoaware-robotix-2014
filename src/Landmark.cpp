@@ -4,24 +4,16 @@ using namespace std;
 
 Landmark::Landmark()
 {
-  centroid = cv::Point2f(0.f,0.f);
+  //calls base class constructor by default
   shape = "None";
   color = "None";
-  start = -1;
-  end = -1;
-  action = -1;
-  idx = -1;
 }
 
 Landmark::Landmark(cv::Point2f ctr, string sh, string clr, int st, int en)
+  :  Waypoint(ctr,st,en)
 {
-  centroid = ctr;
   shape = sh;
   color = clr;
-  start = st;
-  end = en;
-  idx = -1;
-  action = -1;
 }
 
 Landmark::Landmark(const Landmark& L)
