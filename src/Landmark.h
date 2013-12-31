@@ -1,7 +1,8 @@
 #ifndef LANDMARK_H
 #define LANDMARK_H
 
-#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 #include <string>
 #include "Waypoint.h"

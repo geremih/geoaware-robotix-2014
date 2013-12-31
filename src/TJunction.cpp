@@ -9,8 +9,8 @@ TJunction::TJunction()
   LR = false;
 }
 
-TJunction::TJunction(cv::Point2f ctr, int st, bool ud, bool lr):
-   Waypoint(ctr,st,0)
+TJunction::TJunction(cv::Point2f ctr, int st, bool ud, bool lr)
+  :  Waypoint(ctr,st,0)
 {
   UD = ud;
   LR = lr;

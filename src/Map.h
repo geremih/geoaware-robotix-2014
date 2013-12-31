@@ -26,6 +26,7 @@ class Map
   cv::Mat obtainLandmarksImg();
   cv::Mat obtainArenaImg();
   std::vector<Landmark> getLandmarks();
+  void addBorders(int blue, int green, int red);
   void addLandmark(std::vector<Landmark>& landmarks, std::vector<cv::Point>& symbol);
   void removeDuplicateContours(std::vector<std::vector<cv::Point> >& contours_dupl, std::vector<std::vector<cv::Point> >& contours);
   void cleanEdges(std::vector<cv::Point>& approx, std::vector<cv::Point>& actual);

@@ -16,6 +16,7 @@ Map::Map(const string path)
       cout << "Invalid input map! Exiting. " << endl;
       exit(EXIT_FAILURE);
     }
+  addBorders(0,0,0);
   img_landmarks = obtainLandmarksImg();
   img_arena = obtainArenaImg();
   landmarks = getLandmarks();
@@ -27,6 +28,51 @@ Map::Map(const Map& M)
   img_landmarks = M.img_landmarks.clone();
   img_arena = M.img_arena.clone();
   landmarks = M.landmarks;
+}
+
+//adds 2 px wide border around the image to take care of boundary contours
+void Map::addBorders(int blue, int green, int red)
+{
+  int i,j;
+  i = img_src.rows - 1;
+  for(j=0;j<img_src.cols;++j)
+    {
+      img_src.at<Vec3b>(0,j)[0] = blue;
+      img_src.at<Vec3b>(0,j)[1] = green;
+      img_src.at<Vec3b>(0,j)[2] = red;
+
+      img_src.at<Vec3b>(1,j)[0] = blue;
+      img_src.at<Vec3b>(1,j)[1] = green;
+      img_src.at<Vec3b>(1,j)[2] = red;
+
+      img_src.at<Vec3b>(i-1,j)[0] = blue;
+      img_src.at<Vec3b>(i-1,j)[1] = green;
+      img_src.at<Vec3b>(i-1,j)[2] = red;
+      
+      img_src.at<Vec3b>(i,j)[0] = blue;
+      img_src.at<Vec3b>(i,j)[1] = green;
+      img_src.at<Vec3b>(i,j)[2] = red;
+    }
+  
+  j = img_src.cols - 1;
+  for(i=0;i<img_src.rows;++i)
+    {
+      img_src.at<Vec3b>(i,0)[0] = blue;
+      img_src.at<Vec3b>(i,0)[1] = green;
+      img_src.at<Vec3b>(i,0)[2] = red;
+
+      img_src.at<Vec3b>(i,1)[0] = blue;
+      img_src.at<Vec3b>(i,1)[1] = green;
+      img_src.at<Vec3b>(i,1)[2] = red;
+
+      img_src.at<Vec3b>(i,j-1)[0] = blue;
+      img_src.at<Vec3b>(i,j-1)[1] = green;
+      img_src.at<Vec3b>(i,j-1)[2] = red;
+      
+      img_src.at<Vec3b>(i,j)[0] = blue;
+      img_src.at<Vec3b>(i,j)[1] = green;
+      img_src.at<Vec3b>(i,j)[2] = red;
+    }
 }
 
 cv::Mat Map::obtainLandmarksImg()
@@ -140,6 +186,7 @@ void Map::addLandmark(std::vector<Landmark>& landmarks, std::vector<cv::Point>& 
   cv::Point2f center(0.f,0.f);
   float radius = 0.f;
   cv::minEnclosingCircle(symbol,center,radius);
+  //cv::circle(img_landmarks, center, radius, CV_RGB(100,200,255), 2);
   
   int vtc = symbol.size();
   vtc = (vtc > HEXAGON) ? CIRCLE : vtc;
@@ -169,7 +216,7 @@ std::vector<Landmark> Map::getLandmarks()
   // Use Canny instead of threshold to catch squares with gradient shading
   cv::Mat img_bw;
   cv::Canny(img_gray, img_bw, 0, 50, 5);
-  
+  cv::imshow("edges",img_bw);
   cv::Mat img_dst = img_landmarks.clone();
   
   // Find contours
@@ -190,16 +237,20 @@ std::vector<Landmark> Map::getLandmarks()
 
   cout << "Number of contours found : " << contours.size() << endl;
 
-  
   //Get all the landmarks from the contours
   for (int i = 0; i < contours.size(); i++)
-    {
+    {      
+      cv::drawContours(img_landmarks,contours,i,CV_RGB(255,255,255),2);
+      
       // Approximate contour with accuracy proportional to the contour perimeter
-      cv::approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, true);
+      cv::approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, false);
 
       // Skip small or non-convex objects
       if (std::fabs(cv::contourArea(contours[i])) < 100 || !cv::isContourConvex(approx))
-	continue;
+	{
+	  cout << "Skipping contour " << i << endl;
+	  continue;
+	}
       
       cleanEdges(approx,actual);
       
@@ -222,9 +273,8 @@ std::vector<Landmark> Map::getLandmarks()
 	  if (std::abs(1 - ((double)r.width / r.height)) <= 0.2 && std::abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.2)
 	    setLabel(img_dst, string("CIR").append(convertInt(i)), contours[i]);
 	}
-
-      addLandmark(landmarks,actual);
       
+      addLandmark(landmarks,actual);
       actual.clear();
     
     }

@@ -6,9 +6,15 @@
 using namespace std;
 using namespace cv;
 
-int main(void)
+int main(int argc, char* argv[])
 {
-  const string path = "../assets/map1.png";
+  if(argc!=2)
+    {
+      cout << "Usage : ./GeoAware <path/to/map>" << endl;
+      return 1;
+    }
+  const string path(argv[1]);
+  cout << path << endl;
   Map m(path);
   m.displayMap();
   
