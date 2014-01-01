@@ -13,10 +13,9 @@ class TJunction : public Waypoint
 {
 
  public:
-  bool UD,LR;
   
   TJunction();
-  TJunction(cv::Point2f ctr,int st, bool ud, bool lr);
+  TJunction(cv::Point2f ctr, int index);
   TJunction(const TJunction&);
   const TJunction& operator = (const TJunction&);
   friend ostream& operator<< (ostream& stream, const TJunction& T);

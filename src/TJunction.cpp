@@ -4,16 +4,11 @@ using namespace std;
 
 TJunction::TJunction()
 {
-  Waypoint();
-  UD = false;
-  LR = false;
 }
 
-TJunction::TJunction(cv::Point2f ctr, int st, bool ud, bool lr)
-  :  Waypoint(ctr,st,0)
+TJunction::TJunction(cv::Point2f ctr, int index)
+  :  Waypoint(ctr,0,0, index)
 {
-  UD = ud;
-  LR = lr;
 }
 
 const TJunction& TJunction::operator =(const TJunction& T)
@@ -23,8 +18,6 @@ const TJunction& TJunction::operator =(const TJunction& T)
   end = T.end;
   idx = T.idx;
   action = T.action;
-  UD = T.UD;
-  LR = T.LR;
   return *this;
 }
 
@@ -37,8 +30,6 @@ ostream& operator <<(ostream& stream, const TJunction& T)
   
   stream << "Index : " << T.idx << endl;
   stream << "Center : " << T.centroid << endl;
-  stream << "UD : " << T.UD << endl;
-  stream << "LR : " << T.LR << endl;
   
   return stream;
 }

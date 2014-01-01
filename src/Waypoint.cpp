@@ -19,3 +19,16 @@ Waypoint::Waypoint(cv::Point2f ctr, int st, int en)
   action = -1;
   idx = -1;
 }
+
+Waypoint::Waypoint(cv::Point2f ctr, int st, int en, int index)
+{
+  centroid = ctr;
+  start = st;
+  end = en;
+  action = -1;
+  idx = index;
+}
+
+Waypoint::~Waypoint()
+{
+}

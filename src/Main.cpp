@@ -13,14 +13,17 @@ int main(int argc, char* argv[])
       cout << "Usage : ./GeoAware <path/to/map>" << endl;
       return 1;
     }
+  
   const string path(argv[1]);
   cout << path << endl;
   Map m(path);
-  m.displayMap();
+  //m.displayMap();
   
   MapProcessor mp(m);
-  mp.printLandmarks();
+  //mp.printLandmarks();
   mp.displayConnections();
+  mp.displayRoute();
+  mp.printRoute();
 
   cv::waitKey(0);
   return 0;

@@ -20,6 +20,8 @@ class Waypoint
   
   Waypoint();
   Waypoint(cv::Point2f ctr, int st, int en);
+  Waypoint(cv::Point2f ctr, int st, int en, int index);
+  virtual ~Waypoint();
 };
 
 #endif

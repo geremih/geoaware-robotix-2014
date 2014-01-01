@@ -246,11 +246,11 @@ std::vector<Landmark> Map::getLandmarks()
       cv::approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, false);
 
       // Skip small or non-convex objects
-      if (std::fabs(cv::contourArea(contours[i])) < 100 || !cv::isContourConvex(approx))
+      /*if (std::fabs(cv::contourArea(contours[i])) < 100 || !cv::isContourConvex(approx))
 	{
 	  cout << "Skipping contour " << i << endl;
 	  continue;
-	}
+	  }*/
       
       cleanEdges(approx,actual);
       
