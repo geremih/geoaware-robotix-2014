@@ -325,23 +325,6 @@ void MapProcessor::drawIndices()
     }
 }
 
-bool MapProcessor::isConnected(Landmark l1, Landmark l2)
-{
-  //isnt this equivalent to isConnected( l1.centroid, l2.centroid) ?
-  LineIterator it(m.img_arena, l1.centroid, l2.centroid, 8);
- 
-  for(int i = 0; i < it.count; i++, ++it)
-    {
-      Vec3b intensity = m.img_arena.at<Vec3b>(it.pos());
-      int blue = (int)intensity.val[0];
-      int green = (int)intensity.val[1];
-      int red = (int)intensity.val[2];
-      if(blue==0 && green==0 && red==0)
-        return false;
-    }
-  return true;
-}
-
 bool MapProcessor::isConnected(cv::Point2f p1, cv::Point2f p2)
 {
   LineIterator it(m.img_arena, p1, p2, 8);
@@ -375,7 +358,7 @@ void MapProcessor::fillAdjMat()
     {
       for(j=0;j<i;++j)
         {
-          if(isConnected(landmarks[i], landmarks[j]))
+          if(isConnected(landmarks[i].centroid, landmarks[j].centroid))
             {
               adjMat[i][j] = 1;
               adjMat[j][i] = 1;

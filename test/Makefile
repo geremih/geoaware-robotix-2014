@@ -6,3 +6,6 @@ HEADERS = *.h
 SmoothedHoughLines: SmoothedHoughLines.cpp
 	g++ -g $(CFLAGS) -o SmoothedHoughLines SmoothedHoughLines.cpp $(LIBS)
 	./SmoothedHoughLines
+
+FindWaypoints: FindWaypoints.cpp
+	g++ -g $(CFLAGS) -o FindWaypoints FindWaypoints.cpp $(LIBS)
