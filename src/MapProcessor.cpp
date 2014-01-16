@@ -1,5 +1,6 @@
 #include "MapProcessor.h"
 
+
 using namespace std;
 using namespace cv;
 
@@ -31,7 +32,7 @@ MapProcessor::~MapProcessor()
   for(int i=0;i<route.size();++i)
     {
       if(route[i]!=NULL)
-	delete route[i];
+        delete route[i];
     }
 }
 
@@ -59,62 +60,62 @@ void MapProcessor::findRoute()
       idx = l->idx;
       
       if(l->color == "BROWN")
-	break;
+        break;
 
       for(i=0;i<size;++i)
-	{
-	  //this is the  next landmark in the route
-	  if(adjMat[idx][i]==1 && used[i]==0)
-	    {
-	      wp = new Landmark(landmarks[i]);
-	      route.push_back(wp);
-	      used[i] = 1;
-	      break;
-	    }
-	}
+        {
+          //this is the  next landmark in the route
+          if(adjMat[idx][i]==1 && used[i]==0)
+            {
+              wp = new Landmark(landmarks[i]);
+              route.push_back(wp);
+              used[i] = 1;
+              break;
+            }
+        }
       
       //next in sequence already found above, so go to next iteration
       if(i<size)
-	continue;
+        continue;
       
       //next in sequence is a T-Junction
       //check all unused landmarks to see which can form a T-Junction with idx
       for(i=0;i<size;++i)
-	{
-	  if(used[i] == 1)
-	    continue;
+        {
+          if(used[i] == 1)
+            continue;
 	  
-	  cv::Point2f p_idx(landmarks[idx].centroid);
-	  cv::Point2f p_i(landmarks[i].centroid);
+          cv::Point2f p_idx(landmarks[idx].centroid);
+          cv::Point2f p_i(landmarks[i].centroid);
 	  
-	  cv::Point2f p1(p_idx.x,p_i.y);
-	  cv::Point2f p2(p_i.x,p_idx.y);
+          cv::Point2f p1(p_idx.x,p_i.y);
+          cv::Point2f p2(p_i.x,p_idx.y);
 	  
-	  if(isConnected(p_idx,p1) && isConnected(p1,p_i))
-	    {
-	      wp = new TJunction(p1,size + nTJ);
-	      ++nTJ;
-	      route.push_back(wp);
+          if(isConnected(p_idx,p1) && isConnected(p1,p_i))
+            {
+              wp = new TJunction(p1,size + nTJ);
+              ++nTJ;
+              route.push_back(wp);
 	      
-	      wp = new Landmark(landmarks[i]);
-	      used[i] = 1;
-	      route.push_back(wp);
+              wp = new Landmark(landmarks[i]);
+              used[i] = 1;
+              route.push_back(wp);
 
-	      break;
-	    }
-	  if(isConnected(p_idx,p2) && isConnected(p2,p_i))
-	    {
-	      wp = new TJunction(p2,size + nTJ);
-	      ++nTJ;
-	      route.push_back(wp);
+              break;
+            }
+          if(isConnected(p_idx,p2) && isConnected(p2,p_i))
+            {
+              wp = new TJunction(p2,size + nTJ);
+              ++nTJ;
+              route.push_back(wp);
 	      
-	      wp = new Landmark(landmarks[i]);
-	      used[i] = 1;
-	      route.push_back(wp);
+              wp = new Landmark(landmarks[i]);
+              used[i] = 1;
+              route.push_back(wp);
 
-	      break;
-	    }
-	}
+              break;
+            }
+        }
     }
   delete used;
 }
@@ -160,54 +161,54 @@ string MapProcessor::getDir(string orientation_curr, string orientation_next)
   if(orientation_curr == "NORTH")
     {
       if(orientation_next == "NORTH")
-	direction = "STRAIGHT";
+        direction = "STRAIGHT";
       else if(orientation_next == "SOUTH")
-	direction = "U-TURN";
+        direction = "U-TURN";
       else if(orientation_next == "EAST")
-	direction = "RIGHT";
+        direction = "RIGHT";
       else if(orientation_next == "WEST")
-	direction = "LEFT";
+        direction = "LEFT";
       else
-	direction =  "?";
+        direction =  "?";
     }
   else if(orientation_curr == "SOUTH")
     {
       if(orientation_next == "NORTH")
-	direction = "U-TURN";
+        direction = "U-TURN";
       else if(orientation_next == "SOUTH")
-	direction = "STRAIGHT";
+        direction = "STRAIGHT";
       else if(orientation_next == "EAST")
-	direction = "LEFT";
+        direction = "LEFT";
       else if(orientation_next == "WEST")
-	direction = "RIGHT";
+        direction = "RIGHT";
       else
-	direction = "?";
+        direction = "?";
     }
   else if(orientation_curr == "EAST")
     {
       if(orientation_next == "NORTH")
-	direction = "LEFT";
+        direction = "LEFT";
       else if(orientation_next == "SOUTH")
-	direction = "RIGHT";
+        direction = "RIGHT";
       else if(orientation_next == "EAST")
-	direction = "STRAIGHT";
+        direction = "STRAIGHT";
       else if(orientation_next == "WEST")
-	direction = "U-TURN";
+        direction = "U-TURN";
       else
-	direction = "?";
+        direction = "?";
     }
   else if(orientation_curr == "WEST")
     {
       if(orientation_next == "NORTH")
-	direction = "RIGHT";
+        direction = "RIGHT";
       else if(orientation_next == "SOUTH")
-	direction = "LEFT";
+        direction = "LEFT";
       else if(orientation_next == "EAST")
-	direction = "U-TURN";
+        direction = "U-TURN";
       else if(orientation_next == "WEST")
-	direction = "STRAIGHT";
+        direction = "STRAIGHT";
       else
-	direction = "?";
+        direction = "?";
     }
   else
     direction = "?";
@@ -233,24 +234,24 @@ void MapProcessor::printRoute()
       wp = route[i];
       l = dynamic_cast<Landmark*>(wp);
       if(l!=NULL)
-	{
-	  orientation_curr = getOrient(route[i-1],route[i]);
-	  orientation_next = getOrient(route[i],route[i+1]);
-	  direction = getDir(orientation_curr,orientation_next);
+        {
+          orientation_curr = getOrient(route[i-1],route[i]);
+          orientation_next = getOrient(route[i],route[i+1]);
+          direction = getDir(orientation_curr,orientation_next);
 	  
-	  cout << i+1 << ". " << direction << " at Landmark :" << endl;
-	  cout << *l << endl;
-	}
+          cout << i+1 << ". " << direction << " at Landmark :" << endl;
+          cout << *l << endl;
+        }
       else
-	{
-	  orientation_curr = getOrient(route[i-1],route[i]);
-	  orientation_next = getOrient(route[i],route[i+1]);
-	  direction = getDir(orientation_curr,orientation_next);
+        {
+          orientation_curr = getOrient(route[i-1],route[i]);
+          orientation_next = getOrient(route[i],route[i+1]);
+          direction = getDir(orientation_curr,orientation_next);
 
-	  tj = dynamic_cast<TJunction*>(wp);
-	  cout << i+1 << ". " << direction << " at T-Junction :" << endl;
-	  cout << *tj << endl;
-	}
+          tj = dynamic_cast<TJunction*>(wp);
+          cout << i+1 << ". " << direction << " at T-Junction :" << endl;
+          cout << *tj << endl;
+        }
     }
   cout << i+1 << ". Reached [END]" << endl;
 }
@@ -270,10 +271,10 @@ void MapProcessor::drawConnections()
   for(i=0;i<landmarks.size();++i)
     {
       for(j=0;j<i;++j)
-	{
-	  if(adjMat[i][j]==1)
-	    cv::line(img_connections,landmarks[i].centroid,landmarks[j].centroid,CV_RGB(100,100,100),3);
-	}
+        {
+          if(adjMat[i][j]==1)
+            cv::line(img_connections,landmarks[i].centroid,landmarks[j].centroid,CV_RGB(100,100,100),3);
+        }
     }
 }
 
@@ -284,23 +285,23 @@ void MapProcessor::assignIndices()
   for(i=0;i<landmarks.size();++i)
     {
       if(landmarks[i].start)
-	{
-	  l = landmarks[0];
-	  landmarks[0] = landmarks[i];
-	  landmarks[i] = l;
-	  break;
-	}
+        {
+          l = landmarks[0];
+          landmarks[0] = landmarks[i];
+          landmarks[i] = l;
+          break;
+        }
     }
   
   for(i=0;i<landmarks.size();++i)
     {
       if(landmarks[i].end)
-	{
-	  l = landmarks[landmarks.size()-1];
-	  landmarks[landmarks.size()-1] = landmarks[i];
-	  landmarks[i] = l;
-	  break;
-	}
+        {
+          l = landmarks[landmarks.size()-1];
+          landmarks[landmarks.size()-1] = landmarks[i];
+          landmarks[i] = l;
+          break;
+        }
     }
 
   for(i=0;i<landmarks.size();++i)
@@ -326,17 +327,18 @@ void MapProcessor::drawIndices()
 
 bool MapProcessor::isConnected(Landmark l1, Landmark l2)
 {
+  //isnt this equivalent to isConnected( l1.centroid, l2.centroid) ?
   LineIterator it(m.img_arena, l1.centroid, l2.centroid, 8);
  
   for(int i = 0; i < it.count; i++, ++it)
-  {
-    Vec3b intensity = m.img_arena.at<Vec3b>(it.pos());
-    int blue = (int)intensity.val[0];
-    int green = (int)intensity.val[1];
-    int red = (int)intensity.val[2];
-    if(blue==0 && green==0 && red==0)
-      return false;
-  }
+    {
+      Vec3b intensity = m.img_arena.at<Vec3b>(it.pos());
+      int blue = (int)intensity.val[0];
+      int green = (int)intensity.val[1];
+      int red = (int)intensity.val[2];
+      if(blue==0 && green==0 && red==0)
+        return false;
+    }
   return true;
 }
 
@@ -350,7 +352,7 @@ bool MapProcessor::isConnected(cv::Point2f p1, cv::Point2f p2)
       int green = (int)intensity.val[1];
       int red = (int)intensity.val[2];
       if(blue==0 && green==0 && red==0)
-	return false;
+        return false;
     }
   return true;
 }
@@ -372,18 +374,18 @@ void MapProcessor::fillAdjMat()
   for(i=0;i<landmarks.size();++i)
     {
       for(j=0;j<i;++j)
-	{
-	  if(isConnected(landmarks[i], landmarks[j]))
-	    {
-	      adjMat[i][j] = 1;
-	      adjMat[j][i] = 1;
-	    }
-	  else
-	    {
-	      adjMat[i][j] = 0;
-	      adjMat[j][i] = 0;
-	    }
-	}
+        {
+          if(isConnected(landmarks[i], landmarks[j]))
+            {
+              adjMat[i][j] = 1;
+              adjMat[j][i] = 1;
+            }
+          else
+            {
+              adjMat[i][j] = 0;
+              adjMat[j][i] = 0;
+            }
+        }
     }
   for(i=0;i<landmarks.size();++i)
     adjMat[i][i] = 0;
@@ -397,7 +399,220 @@ void MapProcessor::printLandmarks()
 
 string MapProcessor::convertInt(int number)
 {
-   stringstream ss;//create a stringstream
-   ss << number;//add number to the stream
-   return ss.str();//return a string with the contents of the stream
+  stringstream ss;//create a stringstream
+  ss << number;//add number to the stream
+  return ss.str();//return a string with the contents of the stream
 }
+
+void MapProcessor::findAllTJunctions(){
+  //vector< Waypoint* > allJunctions;
+  int nTJ = 0;
+  for(int i=0;i<landmarks.size() ; i++){
+    //not done in next loop to preserve index
+    allJunctions.push_back( landmarks[i]);
+  }
+  Landmark temp;
+  for(int i=0;i<landmarks.size();++i)
+    {
+
+                        
+      for(int j = i+1 ; j < landmarks.size(); j++){
+                                
+        cv::Point2f p_j(landmarks[j].centroid);
+        cv::Point2f p_i(landmarks[i].centroid);
+	  
+        cv::Point2f p1(p_j.x,p_i.y);
+        cv::Point2f p2(p_i.x,p_j.y);
+	  
+        if(isConnected(p_j,p1) && isConnected(p1,p_i))
+          {
+            allJunctions.push_back(Landmark(p1 , "TJ" , "None" , 0 , 0 ));
+            allJunctions.back().idx = size + nTJ;
+            ++nTJ;
+            break;
+          }
+        if(isConnected(p_j,p2) && isConnected(p2,p_i))
+          {
+            allJunctions.push_back(Landmark(p2 , "TJ" , "None" , 0 , 0 ));
+            allJunctions.back().idx = size + nTJ;
+            ++nTJ;
+
+            break;
+          }
+      }
+    }
+}
+
+void MapProcessor::fillAllAdjMat (){
+  int i,j;
+  for(i=0;i<allJunctions.size();++i)
+    {
+      for(j=0;j<i;++j)
+        {
+          if(isConnected(allJunctions[i], allJunctions[j]))
+            {
+              adjMatAllJunctions[i][j] = 1;
+              adjMatAllJunctions[j][i] = 1;
+            }
+          else
+            {
+              adjMatAllJunctions[i][j] = 0;
+              adjMatAllJunctions[j][i] = 0;
+            }
+        }
+    }
+  for(i=0;i<allJunctions.size();++i)
+    adjMatAllJunctions[i][i] = 0;
+}
+                
+
+
+
+void MapProcessor::shortestPath(){
+  //get start and endpoints
+  //get hexagon points
+
+  //stores all hexagons, start and points
+  std::deque<int> hexagon_index;
+  //stores all the start landmarks
+  std::vector<int> start_index;
+  //index of the last landmark
+  int  end_index;
+
+  //storage for floyd warshall
+  std::vector<std::vector<int> > distances(allJunctions.size(), vector<int>(allJunctions.size(),999999999));
+  std::vector<std::vector<int> > next(allJunctions.size(), vector<int>(allJunctions.size(),999999999));
+
+  //populating the hexagon_index vector
+  for (int i =0; i < allJunctions.size() ; i++)
+    {
+      if( allJunctions[i].shape == "HEXAGON" )
+        hexagon_index.push_back( i);
+      else if( allJunctions[i].start )
+        start_index.push_back(i);
+      else if (allJunctions[i].end)
+        end_index = i;
+    }
+  hexagon_index.push_back(end_index);
+        
+  //vectors of landmark paths corresponding to each start_index element
+  std::vector< std::vector<Landmark> > paths;
+
+  //run floyd warshal
+  allPairsShortestDistance( allJunctions , distances , next); 
+
+  //ranks to permute through hexagon indexes
+  std::vector<int> ranks;
+  for(int i=0; i < hexagon_index.size(); i++){
+    ranks.push_back(i);
+  }
+
+  //helpers to find out the perfect path
+  std::vector<int> min_distance_ranks;
+  double min_distance , curr_distance;
+
+
+  //Find the correct path for each different start_index
+  for( int i = 0 ; i< start_index.size() ; i++)
+    {
+      //add start_element
+      hexagon_index.push_front(start_index[i]);
+      //TODO: nmake this double_max ideally
+      min_distance = 999999999;
+      do {
+        curr_distance = 0;
+                                
+        for(int j = 0 ; j < ranks.size()-1 ; j++)
+          {
+            curr_distance += distances[hexagon_index[ranks[j]]][hexagon_index[ranks[j+1]]];
+          }
+        if( curr_distance < min_distance){
+          min_distance = curr_distance;
+          min_distance_ranks = ranks;
+        }
+      } while ( std::next_permutation(ranks.begin() +1 ,ranks.end() -1)); //the first one is start and last is end. so not permuting them
+
+      std::vector<Landmark> temp_path;
+      paths[i].push_back( allJunctions[hexagon_index[0]]);
+      for(int j=0; j< hexagon_index.size() -1 ; j++)
+        {
+                                        
+          //getPath only returns the intermediate path
+          temp_path =  getPath(hexagon_index[min_distance_ranks[j]] , hexagon_index[ min_distance_ranks[j+1]] ,distances , next );
+          paths[i].insert( paths[i].end() , temp_path.begin() , temp_path.end());
+          paths[i].push_back( allJunctions[hexagon_index[ min_distance_ranks[j+1]]] );
+        }
+
+      //remove the start element
+      hexagon_index.pop_front();
+    }
+}
+
+
+void MapProcessor::allPairsShortestDistance( std::vector<Landmark> vertices , std::vector<std::vector<int> > & distances , std::vector<std::vector<int> > & next ){
+
+  // initialize diagonal
+  for(int i=0; i < vertices.size(); i++)
+    distances[i][i]=0;
+			
+
+  for( int i =0 ; i < vertices.size() ; i++ ){
+    for( int j =0 ; j < vertices.size() ; j++ ){
+      distances[i][j]  = distance( vertices[i].centroid , vertices[j].centroid);
+    }
+  }
+
+
+  // Floyd-Warshall
+  // Add nodes between (first 1 then 2, 3 till n) and look if
+  // distance is shorter
+  for(int k = 0; k < vertices.size(); k++)
+    for(int i = 0; i < vertices.size(); i++)
+      for(int j = 0; j < vertices.size(); j++)
+        if(distances[i][j]>distances[i][k]+distances[k][j]){
+          distances[i][j]=distances[i][k]+distances[k][j];
+          next[i][j]= k;
+        }
+                                 
+	
+  // Print out final distance matrix
+  for(int i = 0; i < vertices.size(); i++){
+    for(int j = 0; j < vertices.size(); j++)
+      cout << distances[i][j] << " ";
+    cout << endl;
+  }
+
+}
+
+std::vector<Landmark> MapProcessor::getPath(int i, int  j , std::vector<std::vector<int> >& distances,  std::vector<std::vector<int> >& next ){
+
+  //the path returned only contains the intermediate points to be visited
+  std::vector<Landmark> pathi , pathj , path;
+
+  // TODO: this should be made something that says its not possible to reach
+  if (distances[i][j] == 9999999)
+    return path;
+  int intermediate = next[i][j];
+  if (intermediate ==  -1)
+    return path;
+  else {
+    pathi = getPath(i, intermediate , distances , next);
+    pathj = getPath(intermediate, j , distances , next);
+
+    //concatenate the paths
+    path.reserve(pathi.size() + pathj.size() + 1);
+    path.insert( path.end(), pathi.begin(), pathi.end() );
+    path.push_back(allJunctions[intermediate]);
+    path.insert( path.end(), pathj.begin(), pathj.end() );
+    return path;
+  }
+        
+}
+
+
+double MapProcessor::distance( cv::Point2f a , cv::Point2f b){
+  return cv::norm(cv::Mat(a),cv::Mat(b));
+}
+
+
+
