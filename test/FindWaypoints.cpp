@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #define EPSILON 10
+#define EPSILON_TJ 25
 
 using namespace cv;
 using namespace std;
@@ -169,7 +170,27 @@ int getIndex(std::vector<int> vec, int val)
   return -1;
 }
 
-// TODO : Take care of 4-way junctions
+void removeDuplicateTJ(std::vector<cv::Point>& TJ_dupl, std::vector<cv::Point>& TJ)
+{
+  int i,j;
+  int X,Y,x,y;
+  cv::Rect R,r;
+  for(i=0;i<TJ_dupl.size();++i)
+    {
+      X = TJ_dupl[i].x;
+      Y = TJ_dupl[i].y;
+      for(j=0;j<TJ.size();++j)
+	{
+	  x = TJ[j].x;
+	  y = TJ[j].y;
+	  if(abs(X-x)<EPSILON_TJ && abs(Y-y)<EPSILON_TJ)
+	    break;
+	}
+      if(j==TJ.size())
+	  TJ.push_back(TJ_dupl[i]);
+    }
+}
+
 std::vector<cv::Point> findTJunctions()
 {
   int i,j,k,l;
@@ -304,38 +325,34 @@ std::vector<cv::Point> findTJunctions()
 		{
 		case 'U' : width = abs(corners[i].x - corners[j].x);
 		  TJ = cv::Point(0.5*(corners[i].x + corners[j].x),corners[i].y - width/2);
-		  clr = CV_RGB(255,0,0);
-		  cout << 'U' << endl;
-		  circle(img_conn,TJ,5,Scalar(0),2,8,0);
 		  break;
 		case 'L' : width = abs(corners[i].y - corners[j].y);
 		  TJ = cv::Point(corners[i].x - width/2,0.5*(corners[i].y + corners[j].y));
-		  clr = CV_RGB(0,255,0);
-		  cout << 'L' << endl;
-		  circle(img_conn,TJ,5,Scalar(0),2,8,0);
 		  break;
 		case 'R' : width = abs(corners[i].y - corners[j].y);
 		  TJ = cv::Point(corners[i].x + width/2,0.5*(corners[i].y + corners[j].y));
-		  clr = CV_RGB(0,0,255);
-		  cout << 'R' << endl;
-		  circle(img_conn,TJ,5,Scalar(0),2,8,0);
 		  break;
 		case 'D' : width = abs(corners[i].x - corners[j].x);
 		  TJ = cv::Point(0.5*(corners[i].x + corners[j].x),corners[i].y + width/2);
-		  clr = CV_RGB(255,255,0);
-		  cout << 'D' << endl;
-		  circle(img_conn,TJ,5,Scalar(0),2,8,0);
 		  break;
 		}
 	      TJunctions.push_back(TJ);
-	      //cv::line(img_conn, corners[i],corners[j], clr, 2);
+
 	    }
 	
 	}
     }
-  
-  cv::imshow("T junctions",img_conn);
-  return TJunctions;
+  std::vector<cv::Point> TJunctions_unique;
+  removeDuplicateTJ(TJunctions,TJunctions_unique);
+  return TJunctions_unique;
+}
+
+void drawTJ(std::vector<cv::Point>& TJ)
+{
+  cv::Mat img_TJ = img_arena.clone();
+  for(int i=0;i<TJ.size();++i)
+    circle(img_TJ,TJ[i],5,Scalar(0),2,8,0);
+  cv::imshow("TJ",img_TJ);
 }
 
 int main(int argc, char *argv[])
@@ -357,7 +374,8 @@ int main(int argc, char *argv[])
   cornerHarris_demo( 0, 0 ); 
   
   std::vector<cv::Point> TJunctions = findTJunctions();
-
+  drawTJ(TJunctions);
+  
   cv::waitKey(0);
   return 0;
 }

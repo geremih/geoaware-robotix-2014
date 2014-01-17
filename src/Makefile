@@ -1,6 +1,6 @@
 CFLAGS = `pkg-config --cflags opencv`
 LIBS = `pkg-config --libs opencv`
-SOURCES = Landmark.cpp Locomotor.cpp  Main.cpp  Map.cpp  MapProcessor.cpp TJunction.cpp Waypoint.cpp
+SOURCES = Landmark.cpp Main.cpp  Map.cpp  MapProcessor.cpp TJunction.cpp Waypoint.cpp
 HEADERS = *.h
 
 all : $(SOURCES) $(HEADERS)

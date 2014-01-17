@@ -19,6 +19,8 @@
 
 #define PRIMARY_THRESHOLD 69
 #define BLACK_THRESHOLD 65
+
 #define EPSILON 10
+#define EPSILON_TJ 25
 
 #endif

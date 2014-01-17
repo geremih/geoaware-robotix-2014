@@ -17,13 +17,14 @@ int main(int argc, char* argv[])
   const string path(argv[1]);
   cout << path << endl;
   Map m(path);
-  //m.displayMap();
+  m.displayMap();
+  m.printLandmarks();
   
-  MapProcessor mp(m);
+  //MapProcessor mp(m);
   //mp.printLandmarks();
-  mp.displayConnections();
-  mp.displayRoute();
-  mp.printRoute();
+  //mp.displayConnections();
+  //mp.displayRoute();
+  //mp.printRoute();
 
   cv::waitKey(0);
   return 0;

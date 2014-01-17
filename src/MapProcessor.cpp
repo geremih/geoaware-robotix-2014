@@ -432,7 +432,7 @@ void MapProcessor::fillAllAdjMat (){
     {
       for(j=0;j<i;++j)
         {
-          if(isConnected(allJunctions[i], allJunctions[j]))
+          if(isConnected(allJunctions[i].centroid, allJunctions[j].centroid))
             {
               adjMatAllJunctions[i][j] = 1;
               adjMatAllJunctions[j][i] = 1;
