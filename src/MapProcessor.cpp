@@ -410,7 +410,7 @@ void MapProcessor::fillAllAdjMat (){
                         {
                                 if(isConnected(m.TJs[j].centroid , landmarks[i].centroid)){
                                         cadjMat[i][landmarks.size() + j] = 1;
-                                        cadjMat[landmarks.size() + 1][i] = 1;
+                                        cadjMat[landmarks.size() + j][i] = 1;
                                 }
                         }
                 //add landmarks to clandmarks
@@ -420,6 +420,12 @@ void MapProcessor::fillAllAdjMat (){
 
         
         for(int i =0 ; i< m.TJs.size(); i++){
+                for(int j =0 ; j< m.TJs.size(); j++){
+                        if(isConnected(m.TJs[j].centroid , m.TJs[i].centroid)){
+                                cadjMat[landmarks.size() +i][landmarks.size() + j] = 1;
+                                cadjMat[landmarks.size() + j][landmarks.size() + i] = 1;
+                        }
+                }
                 //addJunctions to clandmarks
                 l = m.TJs[i];
                 l.idx = landmarks.size() + i;
@@ -602,11 +608,7 @@ std::vector<Landmark> MapProcessor::getPath(int i, int  j , std::vector<std::vec
                 path.reserve(pathi.size() + pathj.size() + 1);
                 path.insert( path.end(), pathi.begin(), pathi.end() );
                 path.push_back(clandmarks[intermediate]);
-
                 path.insert( path.end(), pathj.begin(), pathj.end() );
-
-                
-
                 return path;
         }
         
@@ -618,7 +620,6 @@ double MapProcessor::distance( cv::Point2f a , cv::Point2f b){
 
 void MapProcessor::drawPath( vector<Landmark> path)
 {
-        cout<<"Drawing"<<endl;
         int i,j;
         for(i=0;i<path.size()-1;++i)
                 cv::line(img_route,path[i].centroid,path[i+1].centroid,CV_RGB(150,50,150),2);
