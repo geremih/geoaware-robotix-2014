@@ -251,7 +251,7 @@ std::vector<Landmark> Map::getLandmarks()
       cv::drawContours(img_landmarks,contours,i,CV_RGB(255,255,255),2);
       
       // Approximate contour with accuracy proportional to the contour perimeter
-      cv::approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, false);
+      cv::approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, true);
 
       // Skip small or non-convex objects
       /*if (std::fabs(cv::contourArea(contours[i])) < 100 || !cv::isContourConvex(approx))
@@ -559,7 +559,7 @@ std::vector<Landmark> Map::getTJs()
 	      if(lineColor(img_arena,p3,p5) + lineColor(img_arena,p4,p6) == 2)
 		{
 		  TMat[i][j] = TMat[j][i] = 1;
-		  cout << "found" << endl;
+		  //cout << "found" << endl;
 		}
 	      // one white, one black
 	      if(lineColor(img_arena,p3,p5) + lineColor(img_arena,p4,p6) == 1)
@@ -580,7 +580,7 @@ std::vector<Landmark> Map::getTJs()
 	      if(lineColor(img_arena,p3,p5) + lineColor(img_arena,p4,p6) == 2)
 		{
 		  TMat[i][j] = TMat[j][i] = 1;
-		  cout << "found" << endl;
+		  //cout << "found" << endl;
 		}
 	      if(lineColor(img_arena,p3,p5) + lineColor(img_arena,p4,p6) == 1)
 		adjMat[i][j] = adjMat[j][i] = 1;
