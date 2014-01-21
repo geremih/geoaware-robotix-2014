@@ -24,10 +24,9 @@ class MapProcessor
   cv::Mat img_route;
   std::vector<Waypoint*> route;
 
-  //contains all junctions including tjunctions and landmarks
-  vector<Landmark > allJunctions;
-  //adjacency matrix on allJunctions
-  std::vector< std::vector<int> > adjMatAllJunctions;
+  //containers of landmarks + tjunctions
+  std::vector<Landmark> clandmarks;
+  vector< vector<int> > cadjMat( total_nodes  , vector<int>( total_nodes , 0));
   
   MapProcessor();
   MapProcessor(Map inp_map);
