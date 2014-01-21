@@ -20,11 +20,11 @@ int main(int argc, char* argv[])
   m.displayMap();
   m.printLandmarks();
   
-  //MapProcessor mp(m);
-  //mp.printLandmarks();
-  //mp.displayConnections();
-  //mp.displayRoute();
-  //mp.printRoute();
+  MapProcessor mp(m);
+  mp.printLandmarks();
+  mp.displayConnections();
+  mp.displayRoute();
+  mp.printRoute();
 
   cv::waitKey(0);
   return 0;

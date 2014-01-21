@@ -26,7 +26,7 @@ class MapProcessor
 
   //containers of landmarks + tjunctions
   std::vector<Landmark> clandmarks;
-  vector< vector<int> > cadjMat( total_nodes  , vector<int>( total_nodes , 0));
+  vector< vector<int> > cadjMat;
   
   MapProcessor();
   MapProcessor(Map inp_map);
@@ -57,7 +57,8 @@ class MapProcessor
   double distance( cv::Point2f a , cv::Point2f b);
   void shortestPath();
   void findAllTJunctions();
-
+  void drawPath( vector<Landmark> route);
+  static bool landmarkComp( Landmark l1 , Landmark l2);
 };
 
 #endif

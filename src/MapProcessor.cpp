@@ -1,5 +1,6 @@
 #include "MapProcessor.h"
 
+#define DIST_MAX 999999
 
 using namespace std;
 using namespace cv;
@@ -21,6 +22,7 @@ MapProcessor::MapProcessor(Map inp_map)
         assignIndices();
         drawIndices();
         fillAdjMat();
+        shortestPath();
 }
 
 MapProcessor::~MapProcessor()
@@ -123,8 +125,8 @@ void MapProcessor::findRoute()
 void MapProcessor::displayRoute()
 {
         findRoute();
-        drawRoute();
-        cv::imshow("route",img_route);
+        //drawRoute();
+        //cv::imshow("route",img_route);
 }
 
 void MapProcessor::drawRoute()
@@ -391,6 +393,10 @@ string MapProcessor::convertInt(int number)
 
 void MapProcessor::fillAllAdjMat (){
         Landmark l;
+        int total_nodes = landmarks.size() + m.TJs.size();
+        cadjMat = std::vector<std::vector<int> >(total_nodes, vector<int>(total_nodes,0));
+        
+        
         for(int i =0; i< landmarks.size() ; i++){
 
                 //Copy initial adjmatric
@@ -402,7 +408,6 @@ void MapProcessor::fillAllAdjMat (){
                 //add tjunctions to adjmatrix
                 for(int j =0; j< m.TJs.size() ; j++)
                         {
-
                                 if(isConnected(m.TJs[j].centroid , landmarks[i].centroid)){
                                         cadjMat[i][landmarks.size() + j] = 1;
                                         cadjMat[landmarks.size() + 1][i] = 1;
@@ -413,6 +418,7 @@ void MapProcessor::fillAllAdjMat (){
         }
 
 
+        
         for(int i =0 ; i< m.TJs.size(); i++){
                 //addJunctions to clandmarks
                 l = m.TJs[i];
@@ -424,88 +430,103 @@ void MapProcessor::fillAllAdjMat (){
                 
 
 
+bool MapProcessor::landmarkComp( Landmark l1 , Landmark l2){
+        return l1.idx < l2.idx;
+}
+
+
+
+
 
 void MapProcessor::shortestPath(){
 
+        fillAllAdjMat();
+
+
+        cout<< "clandmarks is"<< endl;
+
+        for(int i = 0 ; i < clandmarks.size(); i++){
+                cout<< clandmarks[i].idx << clandmarks[i].color << " "<< clandmarks[i].shape << endl;
+
+        }
         //stores all hexagons, start and points
-        std::deque<int> hexagon_index;
+        std::deque<Landmark> hexagon_list;
+        std::deque<Landmark> min_distance_hexagon_list;
         //stores all the start landmarks
-        std::vector<int> start_index;
+        std::vector<Landmark> start_list;
         //index of the last landmark
-        int  end_index = -1;
+        Landmark end_landmark;
 
         //storage for floyd warshall
-        std::vector<std::vector<int> > distances(clandmarks.size(), vector<int>(clandmarks.size(),999999999));
-        std::vector<std::vector<int> > next(clandmarks.size(), vector<int>(clandmarks.size(),999999999));
+        std::vector<std::vector<int> > distances(clandmarks.size(), vector<int>(clandmarks.size(),DIST_MAX));
+        std::vector<std::vector<int> > next(clandmarks.size(), vector<int>(clandmarks.size(),-1));
 
-        //vectors of landmark paths corresponding to each start_index element
-        std::vector< std::vector<Landmark> > paths;
+        //vectors of landmark paths corresponding to each start_list element
 
-        //populating the hexagon_index vector
+
+        //populating the hexagon_list vector
         for (int i =0; i < clandmarks.size() ; i++)
                 {
                         if( clandmarks[i].shape == "HEXAGON" )
-                                hexagon_index.push_back( i);
+                                hexagon_list.push_back( clandmarks[i]);
                         else if( clandmarks[i].start )
-                                start_index.push_back(i);
+                                start_list.push_back(clandmarks[i]);
                         else if (clandmarks[i].end){
-                                if(end_index != -1)
-                                        cout<< "Error: Multiple end landmarks" <<endl;
-                                end_index = i;
+                                end_landmark = clandmarks[i];
 
                         }
                 }
-        hexagon_index.push_back(end_index);
+        hexagon_list.push_back(end_landmark);
         
-
+        std::vector< std::vector<Landmark> > paths(start_list.size());
         //run floyd warshal
         allPairsShortestDistance( clandmarks , distances , next); 
 
-        //ranks to permute through hexagon indexes
-        std::vector<int> ranks;
-        for(int i=0; i < hexagon_index.size(); i++){
-                ranks.push_back(i);
-        }
-
         //helpers to find out the perfect path
-        std::vector<int> min_distance_ranks;
+
         double min_distance , curr_distance;
+        
 
-
-        //Find the correct path for each different start_index
-        for( int i = 0 ; i< start_index.size() ; i++)
+        //Find the correct path for each different start_list
+        for( int i = 0 ; i< start_list.size() ; i++)
                 {
                         //add start_element
-                        hexagon_index.push_front(start_index[i]);
+                        hexagon_list.push_front(start_list[i]);
+                        
                         //TODO: nmake this double_max ideally
-                        min_distance = 999999999;
+                        min_distance = DIST_MAX;
+                        
                         do {
                                 curr_distance = 0;
                                 
-                                for(int j = 0 ; j < ranks.size()-1 ; j++)
+                                for(int j = 0 ; j < hexagon_list.size()-1 ; j++)
                                         {
-                                                curr_distance += distances[hexagon_index[ranks[j]]][hexagon_index[ranks[j+1]]];
+                                                curr_distance += distances[hexagon_list[j].idx][hexagon_list[j+1].idx];
                                         }
                                 if( curr_distance < min_distance){
                                         min_distance = curr_distance;
-                                        min_distance_ranks = ranks;
+                                        min_distance_hexagon_list = hexagon_list;
                                 }
-                        } while ( std::next_permutation(ranks.begin() +1 ,ranks.end() -1)); //the first one is start and last is end. so not permuting them
+                        } while ( std::next_permutation(hexagon_list.begin() +1 ,hexagon_list.end() -1 , MapProcessor::landmarkComp)); //the first one is start and last is end. so not permuting them
 
                         std::vector<Landmark> temp_path;
-                        paths[i].push_back( clandmarks[hexagon_index[0]]);
-                        for(int j=0; j< hexagon_index.size() -1 ; j++)
+
+                        paths[i].push_back( hexagon_list[0]);
+                        for(int j=0; j< hexagon_list.size() -1 ; j++)
                                 {
                                         
                                         //getPath only returns the intermediate path
-                                        temp_path =  getPath(hexagon_index[min_distance_ranks[j]] , hexagon_index[ min_distance_ranks[j+1]] ,distances , next );
+                                        temp_path =  getPath(hexagon_list[j].idx , hexagon_list[j+1].idx ,distances , next );
                                         paths[i].insert( paths[i].end() , temp_path.begin() , temp_path.end());
-                                        paths[i].push_back( clandmarks[hexagon_index[ min_distance_ranks[j+1]]] );
+                                        paths[i].push_back( hexagon_list[j+1]);
+                                        
                                 }
 
                         //remove the start element
-                        hexagon_index.pop_front();
+                        hexagon_list.pop_front();
                 }
+        drawPath( paths[0]);
+
 }
 
 
@@ -518,7 +539,9 @@ void MapProcessor::allPairsShortestDistance( std::vector<Landmark> vertices , st
 
         for( int i =0 ; i < vertices.size() ; i++ ){
                 for( int j =0 ; j < vertices.size() ; j++ ){
-                        distances[i][j]  = distance( vertices[i].centroid , vertices[j].centroid);
+                        if( cadjMat[i][j] != 0)
+                                distances[j][i] = distances[i][j]  = distance( vertices[i].centroid , vertices[j].centroid);
+                                
                 }
         }
 
@@ -536,9 +559,17 @@ void MapProcessor::allPairsShortestDistance( std::vector<Landmark> vertices , st
                                  
 	
         // Print out final distance matrix
+        cout<< "The distance matrix is "<<endl;
         for(int i = 0; i < vertices.size(); i++){
                 for(int j = 0; j < vertices.size(); j++)
                         cout << distances[i][j] << " ";
+                cout << endl;
+        }
+
+        cout<<"The next matrix is " <<endl;
+        for(int i = 0; i < vertices.size(); i++){
+                for(int j = 0; j < vertices.size(); j++)
+                        cout << next[i][j] << " ";
                 cout << endl;
         }
 
@@ -550,11 +581,19 @@ std::vector<Landmark> MapProcessor::getPath(int i, int  j , std::vector<std::vec
         std::vector<Landmark> pathi , pathj , path;
 
         // TODO: this should be made something that says its not possible to reach
-        if (distances[i][j] == 9999999)
+        if (distances[i][j] == DIST_MAX){
+                cout<< i << " and " << j << " are not connected" <<endl;
+                
                 return path;
+
+        }
         int intermediate = next[i][j];
-        if (intermediate ==  -1)
+        if (intermediate ==  -1){
+                cout<< i << " and " << j << " are directly connected" <<endl;
+                cout<<"Returning"<<endl;
+
                 return path;
+        }
         else {
                 pathi = getPath(i, intermediate , distances , next);
                 pathj = getPath(intermediate, j , distances , next);
@@ -563,16 +602,25 @@ std::vector<Landmark> MapProcessor::getPath(int i, int  j , std::vector<std::vec
                 path.reserve(pathi.size() + pathj.size() + 1);
                 path.insert( path.end(), pathi.begin(), pathi.end() );
                 path.push_back(clandmarks[intermediate]);
+
                 path.insert( path.end(), pathj.begin(), pathj.end() );
+
+                
+
                 return path;
         }
         
 }
 
-
 double MapProcessor::distance( cv::Point2f a , cv::Point2f b){
         return cv::norm(cv::Mat(a),cv::Mat(b));
 }
 
-
-
+void MapProcessor::drawPath( vector<Landmark> path)
+{
+        cout<<"Drawing"<<endl;
+        int i,j;
+        for(i=0;i<path.size()-1;++i)
+                cv::line(img_route,path[i].centroid,path[i+1].centroid,CV_RGB(150,50,150),2);
+        cv::imshow("path",img_route);
+}
