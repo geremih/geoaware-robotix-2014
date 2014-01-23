@@ -5,9 +5,22 @@
 
 #define EPSILON 10
 #define PRIMARY_THRESHOLD 69
+#define BLACK_THRESHOLD 65
+#define WHITE_THRESHOLD 175
+#define MAXVAL 255
+#define THRESH 100
 
 using namespace cv;
 using namespace std;
+
+static double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0)
+{
+  double dx1 = pt1.x - pt0.x;
+  double dy1 = pt1.y - pt0.y;
+  double dx2 = pt2.x - pt0.x;
+  double dy2 = pt2.y - pt0.y;
+  return (dx1*dx2 + dy1*dy2)/sqrt((dx1*dx1 + dy1*dy1)*(dx2*dx2 + dy2*dy2) + 1e-10);
+}
 
 string vtxToShape(int vtc)
 {
@@ -97,7 +110,26 @@ void cleanEdges(std::vector<cv::Point>& approx, std::vector<cv::Point>& actual)
     actual = approx;
 }
 
-void detectSymbol(cv::Mat src, cv::Mat edges)
+void addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& centers, std::vector<float>& radii, std::vector<string>& shapes, std::vector<string>& colors, std::vector<cv::Point>& actual)
+{
+  cv::Point2f center;
+  float radius;
+  
+  cv::minEnclosingCircle( (Mat)actual, center, radius );
+  
+  Vec3b intensity = src_thresh.at<Vec3b>((int)center.y,(int)center.x);
+  int blue = (int)intensity.val[0];
+  int green = (int)intensity.val[1];
+  int red = (int)intensity.val[2];
+  string color = getColor(blue,green,red);
+
+  centers.push_back(center);
+  radii.push_back(radius);
+  shapes.push_back(vtxToShape(actual.size()));
+  colors.push_back(color);
+}
+
+void detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges)
 {
   std::vector<std::vector<cv::Point> > contours_dupl;
   std::vector<std::vector<cv::Point> > contours;
@@ -107,41 +139,109 @@ void detectSymbol(cv::Mat src, cv::Mat edges)
   std::vector<cv::Point> approx;
   std::vector<cv::Point> actual;
   
-  std::vector<Point2f>center( contours.size() );
-  std::vector<float>radius( contours.size() );
-
-  int vtx;
-  string color;
+  int vtc;
+  cv::Scalar clr;
+  int i;
   
-  for(int i=0;i<contours.size();++i)
+  // used to store all detected shapes in 'edges'
+  std::vector<cv::Point2f> centers;
+  std::vector<float> radii;
+  std::vector<string> shapes;
+  std::vector<string> colors;
+  
+  for(i=0;i<contours.size();++i)
     {
       actual.clear();
-      cv::Scalar clr = CV_RGB(rand()%255,rand()%255,rand()%255);
-      cv::drawContours(src,contours,i,clr,2);
       cv::approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, true);
       cleanEdges(approx,actual);
+      vtc = actual.size();
       
-      if (std::fabs(cv::contourArea(contours[i])) < 100 || !cv::isContourConvex(approx))
+      if (std::fabs(cv::contourArea(contours[i])) < 100 || !cv::isContourConvex(approx) || vtc<3)
       	continue;
-      if(actual.size()<3)
-	continue;
       
-      cv::minEnclosingCircle( (Mat)actual, center[i], radius[i] );
-      cv::circle( src, center[i], radius[i], clr, 2, 8, 0 );
-      vtx = actual.size();
-      
-      Vec3b intensity = src.at<Vec3b>((int)center[i].y,(int)center[i].x);
-      int blue = (int)intensity.val[0];
-      int green = (int)intensity.val[1];
-      int red = (int)intensity.val[2];
-      color = getColor(blue,green,red);
-      
-      break;
-      //cout << "contour " << i << " : " << endl;
-      //cout << "vertices = " << actual.size() << endl;
-      //cout << "center = " << center[i] << ", r = " << radius[i] << endl;
+      if(vtc==3)
+	addShape(src_thresh, centers, radii, shapes, colors, actual);
+      else if(vtc>=4 && vtc<=6)
+	{
+	  std::vector<double> cos;
+	  for (int j = 2; j < vtc+1; j++)
+	    cos.push_back(angle(approx[j%vtc], approx[j-2], approx[j-1]));
+
+	  // Sort ascending the corner degree values
+	  std::sort(cos.begin(), cos.end());
+
+	  // Get the lowest and the highest degree
+	  double mincos = cos.front();
+	  double maxcos = cos.back();
+
+	  // Use the degrees obtained above and the number of vertices
+	  // to determine the shape of the contour
+	  if (vtc == 4 && mincos >= -0.1 && maxcos <= 0.3)
+	    addShape(src_thresh, centers, radii, shapes, colors, actual);
+	  else if (vtc == 6 && mincos >= -0.55 && maxcos <= -0.45)
+	    addShape(src_thresh, centers, radii, shapes, colors, actual);
+	}
+      else if(vtc>=8)
+	{
+	  // Detect circles ( area ~= pi*r^2 )
+	  double area = cv::contourArea(contours[i]);
+	  cv::Rect r = cv::boundingRect(contours[i]);
+	  int radius = r.width / 2;
+
+	  if (std::abs(1 - ((double)r.width / r.height)) <= 0.2 && std::abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.2)
+	    addShape(src_thresh, centers, radii, shapes, colors, actual);
+	}
     }
-  cout << "detected : shape = " << vtxToShape(vtx) << ", color = " << color << endl;
+  
+  if(centers.size() == 0)
+    {
+      cout << "Could not detect symbol!" << endl;
+      return;
+    }
+  
+  // get index of biggest shape
+  int s = 0;
+  for(i = 0;i < radii.size(); ++i)
+    {
+      if(radii[i] > radii[s])
+	s = i;
+      //cout << "added : center = " << centers[i] <<", radius = " << radii[i] << ", shape = " << shapes[i] << endl;
+    }
+  
+  // print details of biggest shape
+  clr = CV_RGB(rand()%255,rand()%255,rand()%255);
+  cv::circle(src, centers[s], radii[s], clr, 2, 8, 0 );
+  cout << "detected : shape = " << shapes[s] << ", color = " << colors[s] << endl;
+  cout << "-------------------" << endl;
+}
+
+// custom threshold function for pre-processing
+void customThreshold(cv::Mat& src_color, cv::Mat& dst, int thresh, int maxval)
+{  
+  dst = src_color.clone();
+  for(int i=0;i<src_color.rows;++i)
+    {
+      for(int j=0;j<src_color.cols;++j)
+	{
+	  Vec3b intensity = src_color.at<Vec3b>(i,j);
+	  int blue = (int)intensity.val[0];
+	  int green = (int)intensity.val[1];
+	  int red = (int)intensity.val[2];
+
+	  if((blue>=WHITE_THRESHOLD && green>=WHITE_THRESHOLD && red>=WHITE_THRESHOLD) || (blue<=BLACK_THRESHOLD && green<=BLACK_THRESHOLD && red<=BLACK_THRESHOLD)) //white or black
+	    {
+	      dst.at<Vec3b>(i,j)[0] = 0;
+	      dst.at<Vec3b>(i, j)[1] = 0;
+	      dst.at<Vec3b>(i, j)[2] = 0;
+	    }
+	  else
+	    {
+	      dst.at<Vec3b>(i, j)[0] = blue;
+	      dst.at<Vec3b>(i, j)[1] = green;
+	      dst.at<Vec3b>(i, j)[2] = red;
+	    }
+	}
+    }
 }
 
 int main()
@@ -156,36 +256,37 @@ int main()
       return -1;
     }
 
-  cv::Mat src, src_gray, src_gray_smooth, src_binary;
+  cv::Mat src, src_gray, src_thresh;
   cv::Mat edges_normal, edges_smooth;
   cv::Mat eroded, dilated;
-  cv::Mat kernel = Mat::ones(Size(4, 4), CV_8U);
-  
+  cv::Mat kernel = Mat::ones(Size(7, 7), CV_8U);
+
   while(true)
     {
       cap >> src;
-      cv::cvtColor( src, src_gray, COLOR_RGB2GRAY );
-      cv::blur( src_gray, src_gray_smooth, Size( 5, 5 ), Point(-1,-1) );
-
-      src_binary = src_gray.clone();
-      cv::threshold(src_gray, src_binary, 128.0, 255.0, THRESH_BINARY);
+      // src = cv::imread("../assets/samples/symbols/shape_1.jpg");
       
-      eroded = src_binary.clone();
-      cv::erode(src_binary,eroded,kernel);
+      cv::cvtColor( src, src_gray, COLOR_RGB2GRAY );
+      //cv::blur( src_gray, src_gray_smooth, Size( 5, 5 ), Point(-1,-1) );
+
+      customThreshold(src, src_thresh, THRESH, MAXVAL);
+      //cv::threshold(src_gray, src_binary, THRESH, MAXVAL, THRESH_BINARY);
+      
+      eroded = src_thresh.clone();
+      cv::erode(src_thresh,eroded,kernel);
       dilated = eroded.clone();
       cv::dilate(eroded,dilated,kernel);
       
-      edges_normal = dilated.clone();
       cv::Canny(dilated, edges_normal, 50, 200, 3 );
 
-      detectSymbol(src,edges_normal);
+      detectSymbol(src, src_thresh, edges_normal);
       
       cv::imshow("src",src);
+      cv::imshow("thresh", src_thresh);
+      cv::imshow("eroded",eroded);
+      cv::imshow("dilated",dilated);
       cv::imshow("edges_normal",edges_normal);
-      //cv::imshow("binary", src_binary);
-      //cv::imshow("eroded",eroded);
-      //cv::imshow("dilated",dilated);
-
+      
       if(cv::waitKey(33) == 'q')
 	break;
     }
