@@ -62,7 +62,7 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
 
   vector<Vec2f> lines;
   bool exists = false;
-
+  
   //Removing lines close to each other
   for(int i = 0; i < clines.size() ; i++){
     exists = false;
@@ -82,7 +82,7 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
   cout<<"There are total " <<  lines.size() << " lines"<<endl;
   imshow("Getting line segments on " , edgeIm);
   //remove contours that are close by
-  int kernel = 2;
+  int kernel = 5;
   vector<Vec6f> segments;
   Point p1 , p2;
   Mat lineTest;
@@ -205,11 +205,19 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
   vector<Vec6f> finalsegments;
   for(int i =0 ; i < segments.size(); i++)
     {
-      if(cv::norm(cv::Mat(Point(segments[i][0] , segments[i][1])),cv::Mat(Point(segments[2][0] , segments[i][3]))) > 10)
-        finalsegments.push_back(segments[i]);
+      double length =  cv::norm(cv::Mat(Point(segments[i][0] , segments[i][1])),cv::Mat(Point(segments[i][2] , segments[i][3])));
+      if(length > kernel*5)
+        {
+          finalsegments.push_back(segments[i]);
+          cout<<length<<endl;
+        }
 
     }
+
+  
   cout<<"There are total " <<finalsegments.size() << " segments"<<endl;
+
+
   return finalsegments;
 }
 
@@ -235,18 +243,82 @@ string argp;
 VideoCapture capture;
 
 
-void alignToLane(){
-
+void removeSymbols(Mat& img){
   
+  Mat hsv;
+  cvtColor(img ,hsv ,CV_RGB2HSV);
 
+  Mat edges;
+  std::vector<std::vector<cv::Point> > contours;
+  cv::Canny(img, edges, 50, 200, 3 );
 
+  cv::findContours(edges, contours, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
+
+  for( int i=0;i<contours.size();++i)
+    {
+
+      int colored = 0;
+      int black =1;
+      int white = 1;
+      Scalar background;
+      Rect bRect =  boundingRect( contours[i]);
+      for( int j = bRect.x ; j< bRect.x + bRect.width ; j++)
+        for(int k = bRect.y ; k < bRect.y + bRect.height; k++){
+          Vec3b intensity = hsv.at<Vec3b>(k , j);
+          int hue = (int)intensity.val[0];
+          int sat = (int)intensity.val[1];
+          int val = (int)intensity.val[2];
+          if(sat > 50 && val > 50)
+            colored++;
+          else if( val < 10)
+            black++;
+          else{
+            white++;
+          }
+        }
+
+      if(colored > black + white){
+        if(black > white)
+          rectangle(img,  bRect, Scalar(0 ,0 ,0) ,-1 );
+        else
+          rectangle(img, bRect , Scalar(135 , 135 ,135) , -1 );
+      }
+      
+    }
+  
+  imshow("nosybold", img);
 }
 
-void centerBot( Mat ){
 
+void detectTunnel(vector<Vec6f> segments){
 
+  int tunnelGap= 50;
+
+  for ( int i =0 ; i< segments.size(); i++)
+    for( int j = i+1 ; j <segments.size(); j++){
+      float distance = 99999999;
+      if( abs(segments[i][4]  - segments[j][4] < .02) &&   abs(segments[i][5]  - segments[j][5]) < .02)
+        {
+
+          float ndist =  norm(Mat(Point(segments[i][0] , segments[i][1])),Mat(Point(segments[j][0] , segments[j][1])));
+          distance = ndist < distance ? ndist : distance;
+          ndist =  norm(Mat(Point(segments[i][0] , segments[i][1])),Mat(Point(segments[j][2] , segments[j][3])));
+          distance = ndist < distance ? ndist : distance;
+          ndist =  norm(Mat(Point(segments[i][2] , segments[i][3])),Mat(Point(segments[j][0] , segments[j][1])));
+          distance = ndist < distance ? ndist : distance;
+          ndist =  norm(Mat(Point(segments[i][2] , segments[i][3])),Mat(Point(segments[j][2] , segments[j][3])));
+          distance = ndist < distance ? ndist : distance;
+          if(distance > tunnelGap){
+            cout<<"Tunnel detected" <<endl;
+          }
+        }
+    }
 }
 
+
+float slope( Point p1 , Point p2){
+  return   atan((p2.y - p1.y)/(p2.x - p1.x)) * 180 / PI;
+}
 
 void LaneDetect(){
 
@@ -254,6 +326,7 @@ void LaneDetect(){
     return;
   Mat gray;
   //remove colors
+  removeSymbols(image);
   cvtColor(image,gray,CV_RGB2GRAY);
   Rect roi(0,image.rows/3,image.cols-1,image.rows - image.rows/3);// set the ROI for the image
   //set ROI dynamically
@@ -291,7 +364,43 @@ void LaneDetect(){
   }
   // Display the detected line image
   imshow("Detected Lines with Hough",result);
-  drawLineSegments(contoursInv ,getLineSegments( contoursInv, lines) , Scalar(0));
+  vector<Vec6f> segments   =getLineSegments( contoursInv, lines) ;
+  drawLineSegments(contoursInv ,segments, Scalar(0));
+  detectTunnel(segments);
+  
+  int seg1, seg2;
+  bool foundLane  = false;
+  for ( int i =0 ; i< segments.size(); i++)
+    for( int j = i+1 ; j <segments.size(); j++){
+      cout<< segments[i][5] << " " << segments[j][5] << " sum is " << (segments[i][5] + segments[j][5]) * 180 /PI<<endl;
+      if( abs ((segments[i][5] + segments[j][5])* 180 /PI - 180 ) < 10)
+        {
+          seg1 = i;
+          seg2 = j;
+          foundLane = true;
+        }
+    }
+
+  if(foundLane){
+    if( segments[seg1][5] > segments[seg2][5])
+      {
+        int temp;
+        temp = seg1;
+        seg1 = seg2;
+        seg2 = temp;
+      }
+
+    if( (180- segments[seg1][5] * 180/PI) < segments[seg2][5] * 180/PI)
+      cout<<"LEFT"<<endl;
+    else
+      cout<< "RIGHT"<<endl;
+
+  }
+  else{
+    cout<<"Cant decide"<<endl;
+  }
+  
+  //find seg
   imshow("Personal algo", contoursInv);
   lines.clear();
   waitKey(1000);
