@@ -58,7 +58,7 @@ float abs( float x , float y){
 
 }
 
-vector<Vec4i> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
+vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
 
   vector<Vec2f> lines;
   bool exists = false;
@@ -83,7 +83,7 @@ vector<Vec4i> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
   imshow("Getting line segments on " , edgeIm);
   //remove contours that are close by
   int kernel = 2;
-  vector<Vec4i> segments;
+  vector<Vec6f> segments;
   Point p1 , p2;
   Mat lineTest;
   edgeIm.copyTo(lineTest);
@@ -189,7 +189,7 @@ vector<Vec4i> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
           if(isOnLine){
             end_point = curr_pos;
             isOnLine = false;
-            segments.push_back(Vec4i(start_point.x , start_point.y , end_point.x , end_point.y ));
+            segments.push_back(Vec6f(start_point.x , start_point.y , end_point.x , end_point.y  , rho , theta));
           }
         }
         
@@ -198,11 +198,11 @@ vector<Vec4i> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
     if(isOnLine){
       end_point = curr_pos;
       isOnLine = false;
-      segments.push_back(Vec4i(start_point.x , start_point.y , end_point.x , end_point.y ));
+      segments.push_back(Vec6f(start_point.x , start_point.y , end_point.x , end_point.y ,rho , theta));
     }
   }
 
-  vector<Vec4i> finalsegments;
+  vector<Vec6f> finalsegments;
   for(int i =0 ; i < segments.size(); i++)
     {
       if(cv::norm(cv::Mat(Point(segments[i][0] , segments[i][1])),cv::Mat(Point(segments[2][0] , segments[i][3]))) > 10)
@@ -214,10 +214,10 @@ vector<Vec4i> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
 }
 
 
-void drawLineSegments(Mat& ime , vector<Vec4i> segments ,  cv::Scalar color=cv::Scalar(255)){
+void drawLineSegments(Mat& ime , vector<Vec6f> segments ,  cv::Scalar color=cv::Scalar(255)){
 
   // Draw the lines
-  std::vector<cv::Vec4i>::const_iterator it2= segments.begin();
+  std::vector<cv::Vec6f>::const_iterator it2= segments.begin();
   while (it2!=segments.end()) {
     cv::Point pt1((*it2)[0],(*it2)[1]);        
     cv::Point pt2((*it2)[2],(*it2)[3]);
@@ -254,7 +254,6 @@ void LaneDetect(){
     return;
   Mat gray;
   //remove colors
-
   cvtColor(image,gray,CV_RGB2GRAY);
   Rect roi(0,image.rows/3,image.cols-1,image.rows - image.rows/3);// set the ROI for the image
   //set ROI dynamically
