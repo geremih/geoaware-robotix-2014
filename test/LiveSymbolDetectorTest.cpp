@@ -110,21 +110,23 @@ void cleanEdges(std::vector<cv::Point>& approx, std::vector<cv::Point>& actual)
     actual = approx;
 }
 
-void addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& centers, std::vector<float>& radii, std::vector<string>& shapes, std::vector<string>& colors, std::vector<cv::Point>& actual)
+void addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& centers, std::vector<float>& radii, std::vector<double>& areas, std::vector<string>& shapes, std::vector<string>& colors, std::vector<cv::Point>& actual)
 {
   cv::Point2f center;
   float radius;
+  double area;
   
   cv::minEnclosingCircle( (Mat)actual, center, radius );
-  
+  area = cv::contourArea(actual);
   Vec3b intensity = src_thresh.at<Vec3b>((int)center.y,(int)center.x);
   int blue = (int)intensity.val[0];
   int green = (int)intensity.val[1];
   int red = (int)intensity.val[2];
   string color = getColor(blue,green,red);
-
+  
   centers.push_back(center);
   radii.push_back(radius);
+  areas.push_back(area);
   shapes.push_back(vtxToShape(actual.size()));
   colors.push_back(color);
 }
@@ -146,6 +148,7 @@ void detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges)
   // used to store all detected shapes in 'edges'
   std::vector<cv::Point2f> centers;
   std::vector<float> radii;
+  std::vector<double> areas;
   std::vector<string> shapes;
   std::vector<string> colors;
   
@@ -160,7 +163,7 @@ void detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges)
       	continue;
       
       if(vtc==3)
-	addShape(src_thresh, centers, radii, shapes, colors, actual);
+	addShape(src_thresh, centers, radii, areas, shapes, colors, actual);
       else if(vtc>=4 && vtc<=6)
 	{
 	  std::vector<double> cos;
@@ -177,9 +180,9 @@ void detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges)
 	  // Use the degrees obtained above and the number of vertices
 	  // to determine the shape of the contour
 	  if (vtc == 4 && mincos >= -0.1 && maxcos <= 0.3)
-	    addShape(src_thresh, centers, radii, shapes, colors, actual);
+	    addShape(src_thresh, centers, radii, areas, shapes, colors, actual);
 	  else if (vtc == 6 && mincos >= -0.55 && maxcos <= -0.45)
-	    addShape(src_thresh, centers, radii, shapes, colors, actual);
+	    addShape(src_thresh, centers, radii, areas, shapes, colors, actual);
 	}
       else if(vtc>=8)
 	{
@@ -189,7 +192,7 @@ void detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges)
 	  int radius = r.width / 2;
 
 	  if (std::abs(1 - ((double)r.width / r.height)) <= 0.2 && std::abs(1 - (area / (CV_PI * std::pow(radius, 2)))) <= 0.2)
-	    addShape(src_thresh, centers, radii, shapes, colors, actual);
+	    addShape(src_thresh, centers, radii, areas, shapes, colors, actual);
 	}
     }
   
@@ -199,13 +202,13 @@ void detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges)
       return;
     }
   
-  // get index of biggest shape
+  // get index of largest area shape
   int s = 0;
-  for(i = 0;i < radii.size(); ++i)
+  for(i = 0;i < areas.size(); ++i)
     {
-      if(radii[i] > radii[s])
+      if(areas[i] > areas[s])
 	s = i;
-      //cout << "added : center = " << centers[i] <<", radius = " << radii[i] << ", shape = " << shapes[i] << endl;
+      cout << "added : center = " << centers[i] <<", radius = " << radii[i] << ", area = " << areas[i] << ", shape = " << shapes[i] << endl;
     }
   
   // print details of biggest shape
@@ -250,11 +253,11 @@ int main()
   
   VideoCapture cap(0); // open the default camera
   
-  if(!cap.isOpened()) // check if we succeeded
-    {
-      cout << "No video capture device detected!" << endl;
-      return -1;
-    }
+  // if(!cap.isOpened()) // check if we succeeded
+  //   {
+  //     cout << "No video capture device detected!" << endl;
+  //     return -1;
+  //   }
 
   cv::Mat src, src_gray, src_thresh;
   cv::Mat edges_normal, edges_smooth;
@@ -263,8 +266,8 @@ int main()
 
   while(true)
     {
-      cap >> src;
-      // src = cv::imread("../assets/samples/symbols/shape_1.jpg");
+      //cap >> src;
+       src = cv::imread("../assets/samples/symbols/shape_1.jpg");
       
       cv::cvtColor( src, src_gray, COLOR_RGB2GRAY );
       //cv::blur( src_gray, src_gray_smooth, Size( 5, 5 ), Point(-1,-1) );
