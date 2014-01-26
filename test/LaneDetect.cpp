@@ -244,7 +244,7 @@ void removeSymbols(Mat& img){
         if(black > white)
           rectangle(img,  bRect, Scalar(0 ,0 ,0) ,-1 );
         else
-          rectangle(img, bRect , Scalar(135 , 135 ,135) , -1 );
+          rectangle(img, bRect , Scalar(161 , 161 , 161) , -1 );
       }
       
     }
@@ -304,45 +304,64 @@ void LaneDetect(){
   Mat contoursInv;
   threshold(contours,contoursInv,128,255,THRESH_BINARY_INV);
   imshow("Canny",contoursInv);
-      
-  std::vector<Vec2f> lines;
-  HoughLines(contours,lines,1,PI/180, houghVote);
-  Mat result(imgROI.size(),CV_8U,Scalar(255));
-  imgROI.copyTo(result);
-  // Draw the limes
-  std::vector<Vec2f>::const_iterator it= lines.begin();
-  Mat hough(imgROI.size(),CV_8U,Scalar(0));
-  while (it!=lines.end()) {
-          
-    float rho= (*it)[0];   // first element is distance rho
-    float theta= (*it)[1]; // second element is angle theta
 
-    Point pt1(rho/cos(theta),0);        
-    // point of intersection of the line with last row
-    Point pt2((rho-result.rows*sin(theta))/cos(theta),result.rows);
-    // draw a white line
-    line( result, pt1, pt2, Scalar(255), 1); 
-    line( hough, pt1, pt2, Scalar(255), 1);
-    ++it;
-  }
-  // Display the detected line image
-  imshow("Detected Lines with Hough",result);
-  vector<Vec6f> segments   =getLineSegments( contoursInv, lines) ;
-  drawLineSegments(contoursInv ,segments, Scalar(0));
-  detectTunnel(segments);
+
   
   int seg1, seg2;
   bool foundLane  = false;
-  for ( int i =0 ; i< segments.size(); i++)
-    for( int j = i+1 ; j <segments.size(); j++){
-      cout<< segments[i][5] << " " << segments[j][5] << " sum is " << (segments[i][5] + segments[j][5]) * 180 /PI<<endl;
-      if( abs ((segments[i][5] + segments[j][5])* 180 /PI - 180 ) < 10)
-        {
-          seg1 = i;
-          seg2 = j;
-          foundLane = true;
-        }
+  std::vector<Vec2f> lines;
+  Mat result(imgROI.size(),CV_8U,Scalar(255));
+  imgROI.copyTo(result);
+  Mat hough(imgROI.size(),CV_8U,Scalar(0));
+  vector<Vec6f> segments;
+  bool noLane  = false;
+  for(houghVote = 60 ; houghVote>=30; houghVote-=5){
+    
+    HoughLines(contours,lines,1,PI/180, houghVote);
+
+    // Draw the limes
+    std::vector<Vec2f>::const_iterator it= lines.begin();
+    while (it!=lines.end()) {
+      float rho= (*it)[0];   // first element is distance rho
+      float theta= (*it)[1]; // second element is angle theta
+
+      Point pt1(rho/cos(theta),0);        
+      // point of intersection of the line with last row
+      Point pt2((rho-result.rows*sin(theta))/cos(theta),result.rows);
+      // draw a white line
+      line( result, pt1, pt2, Scalar(255), 1); 
+      line( hough, pt1, pt2, Scalar(255), 1);
+      ++it;
     }
+    // Display the detected line image
+    imshow("Detected Lines with Hough",result);
+    segments  =getLineSegments( contoursInv, lines) ;
+    drawLineSegments(contoursInv ,segments, Scalar(0));
+    detectTunnel(segments);
+    
+    for ( int i =0 ; i< segments.size(); i++)
+      for( int j = i+1 ; j <segments.size(); j++){
+        cout<< segments[i][5] << " " << segments[j][5] << " sum is " << (segments[i][5] + segments[j][5]) * 180 /PI<<endl;
+        if( abs ((segments[i][5] + segments[j][5])* 180 /PI - 180 ) < 10)
+          {
+            seg1 = i;
+            seg2 = j;
+            foundLane = true;
+          }
+      }
+
+    if(foundLane || noLane)
+      break;
+    else{
+      if(houghVote == 30){
+        noLane = true;
+        houghVote = 65;
+      }
+    }
+  }
+
+  cout<<"Using hough vote " << houghVote<<endl;
+
 
   if(foundLane){
     if( segments[seg1][5] > segments[seg2][5])
