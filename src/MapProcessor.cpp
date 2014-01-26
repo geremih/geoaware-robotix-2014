@@ -157,6 +157,26 @@ string MapProcessor::getOrient(Waypoint *w1, Waypoint *w2)
   return orientation;
 }
 
+
+string MapProcessor::getOrient(Landmark l1, Landmark l2)
+{
+  string orientation;
+  cv::Point2f p1(l1.centroid);
+  cv::Point2f p2(l2.centroid);
+  
+  if(p2.y - p1.y > EPSILON)
+    orientation = "SOUTH";
+  else if(p1.y - p2.y > EPSILON)
+    orientation = "NORTH";
+  else if(p2.x - p1.x > EPSILON)
+    orientation = "EAST";
+  else if(p1.x - p2.x > EPSILON)
+    orientation = "WEST";
+  else
+    orientation = "?";
+  return orientation;
+}
+
 string MapProcessor::getDir(string orientation_curr, string orientation_next)
 {
   string direction;
@@ -442,8 +462,6 @@ bool MapProcessor::landmarkComp( Landmark l1 , Landmark l2){
 
 
 
-
-
 void MapProcessor::shortestPath(){
 
   fillAllAdjMat();
@@ -620,8 +638,101 @@ double MapProcessor::distance( cv::Point2f a , cv::Point2f b){
 
 void MapProcessor::drawPath( vector<Landmark> path)
 {
+
   int i,j;
   for(i=0;i<path.size()-1;++i)
     cv::line(img_route,path[i].centroid,path[i+1].centroid,CV_RGB(150,50,150),2);
   cv::imshow("path",img_route);
+  cv::waitKey(0);
+}
+
+
+void MapProcessor::addTunnel(  string orientation , vector<Landmark>& path_taken , int last_landmark , float approx = .5){
+
+  /* orienation should be of the form LEFT or RIGHT*/
+  Landmark previous = path_taken[last_landmark];
+  Landmark next = path_taken[last_landmark +1];
+  string curr_orientation = getOrient(previous , next);
+  Point start = Point( (1- approx)* previous.centroid.x + approx*next.centroid.x ,  (1- approx)* previous.centroid.y + approx*next.centroid.y);
+  Point end;
+
+  /*
+    WHAT IS THE DIFFENCE BETWEEEN m.img_src , m.img_arena ?
+  */
+  if(orientation == "LEFT"){
+
+    if(curr_orientation == "NORTH"){
+      end = Point(0 , start.y );
+    }
+    else if(curr_orientation == "SOUTH"){
+      end = Point(m.img_src.cols ,start.y);
+    }
+    else     if(curr_orientation == "EAST"){
+      end = Point( start.x , 0);
+    }
+    else     if(curr_orientation == "WEST"){
+      end = Point(start.x , m.img_src.rows);
+    }
+    
+  }
+  else if(orientation == "RIGHT")
+    {
+      if(curr_orientation == "NORTH"){
+        end = Point(m.img_src.cols , start.y);
+      }
+      else if(curr_orientation == "SOUTH"){
+
+        end = Point(0 , start.y );
+      }
+      else     if(curr_orientation == "EAST"){
+        end = Point(start.x , m.img_src.rows);
+      }
+      else     if(curr_orientation == "WEST"){
+        end = Point( start.x , 0);
+      }
+    }
+  else
+    {
+      cout<<"What the fuck are you passing as arguments?"<<endl;
+    }
+
+
+  LineIterator it(m.img_src, start, end, 8);
+  bool inWall = false;
+  Point exit;
+  for(int i = 0; i < it.count; ++i, ++it)
+    {
+      Vec3b intensity = m.img_src.at<Vec3b>(it.pos());
+      int blue = (int)intensity.val[0];
+      int green = (int)intensity.val[1];
+      int red = (int)intensity.val[2];
+      if((blue>250 && green>250 && red> 250)){
+        if(inWall){
+          exit = it.pos();
+          break;
+        }
+      }
+        
+      if(blue<=BLACK_THRESHOLD && green<=BLACK_THRESHOLD && red<=BLACK_THRESHOLD) //white or black
+        {
+
+           inWall = true;
+        }
+    }
+
+  vector<Landmark> new_path;
+  bool takePath = true;
+  for(int i =last_landmark+1; i< path_taken.size(); i++){
+    if(isConnected( path_taken[i].centroid , exit))
+      {
+        new_path.push_back( Landmark(end , "TJ" , "None" , 0  , 0 ));
+        new_path.insert( new_path.end() , path_taken.begin() + i +1 , path_taken.end());
+        break;
+      }
+    else if( path_taken[i].shape == "HEXAGON"){
+      takePath = false;
+      break;
+    }
+  }
+  
 }

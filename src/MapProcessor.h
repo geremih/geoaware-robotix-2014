@@ -36,6 +36,7 @@ class MapProcessor
   void displayConnections();
   void displayRoute();
   void printRoute();
+  void addTunnel(  string orientation , vector<Landmark>& path_taken , int last_landmark , float approx);
  private:
   std::vector<Landmark> landmarks;
   
@@ -50,7 +51,9 @@ class MapProcessor
   void fillAllAdjMat();
   string getDir(string orientation_curr, string orientation_next);
   string getOrient(Waypoint *w1, Waypoint *w2);
+  string getOrient(Landmark l1, Landmark l2);
   static string convertInt(int number);
+
 
   void allPairsShortestDistance( std::vector<Landmark> vertices, std::vector<std::vector<int> > & distances , std::vector<std::vector<int> > & next );
   std::vector<Landmark> getPath( int i,  int j , std::vector<std::vector<int> >& distances,  std::vector<std::vector<int> >& next );
