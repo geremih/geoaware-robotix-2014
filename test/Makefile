@@ -9,3 +9,6 @@ SmoothedHoughLines: SmoothedHoughLines.cpp
 
 FindWaypoints: FindWaypoints.cpp
 	g++ -g $(CFLAGS) -o FindWaypoints FindWaypoints.cpp $(LIBS)
+
+LaneDetect: LaneDetect.cpp 
+	g++ -g $(CFLAGS) -o LaneDetect LaneDetect.cpp $(LIBS)
