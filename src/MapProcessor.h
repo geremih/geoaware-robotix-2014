@@ -23,10 +23,6 @@ class MapProcessor
   cv::Mat img_connections;
   cv::Mat img_route;
   std::vector<Waypoint*> route;
-
-  //containers of landmarks + tjunctions
-  std::vector<Landmark> clandmarks;
-  vector< vector<int> > cadjMat;
   
   MapProcessor();
   MapProcessor(Map inp_map);
@@ -39,6 +35,12 @@ class MapProcessor
   void addTunnel(  string orientation , vector<Landmark>& path_taken , int last_landmark , float approx);
  private:
   std::vector<Landmark> landmarks;
+  std::vector<std::vector<int> > distances;
+  std::vector<std::vector<int> > next;
+
+  //containers of landmarks + tjunctions
+  std::vector<Landmark> clandmarks;
+  vector< vector<int> > cadjMat;
   
   void assignIndices();
   void drawIndices();
@@ -55,8 +57,9 @@ class MapProcessor
   static string convertInt(int number);
 
 
-  void allPairsShortestDistance( std::vector<Landmark> vertices, std::vector<std::vector<int> > & distances , std::vector<std::vector<int> > & next );
-  std::vector<Landmark> getPath( int i,  int j , std::vector<std::vector<int> >& distances,  std::vector<std::vector<int> >& next );
+  void populateAllPairDistance( std::vector<Landmark> vertices);
+  double getShortestDistanceandPath( deque<Landmark> hexagon_list ,  deque<Landmark>& min_distance_hexagon_list);
+  std::vector<Landmark> getPath( int i,  int j );
   double distance( cv::Point2f a , cv::Point2f b);
   void shortestPath();
   void findAllTJunctions();
