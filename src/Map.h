@@ -5,6 +5,8 @@
 #include "Landmark.h"
 #include "TJunction.h"
 
+#define MIN_AREA 5
+
 using namespace std;
 using namespace cv;
 
