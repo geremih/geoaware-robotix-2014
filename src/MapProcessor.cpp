@@ -647,7 +647,7 @@ void MapProcessor::drawPath( vector<Landmark> path)
 }
 
 
-void MapProcessor::addTunnel(  string orientation , vector<Landmark>& path_taken , int last_landmark , float approx = .5){
+void MapProcessor::addTunnel(  string direction , vector<Landmark>& path_taken , int last_landmark , float approx = .5){
 
   /* orienation should be of the form LEFT or RIGHT*/
   Landmark previous = path_taken[last_landmark];
@@ -659,7 +659,7 @@ void MapProcessor::addTunnel(  string orientation , vector<Landmark>& path_taken
   /*
     WHAT IS THE DIFFENCE BETWEEEN m.img_src , m.img_arena ?
   */
-  if(orientation == "LEFT"){
+  if(direction == "LEFT"){
 
     if(curr_orientation == "NORTH"){
       end = Point(0 , start.y );
@@ -675,7 +675,7 @@ void MapProcessor::addTunnel(  string orientation , vector<Landmark>& path_taken
     }
     
   }
-  else if(orientation == "RIGHT")
+  else if(direction == "RIGHT")
     {
       if(curr_orientation == "NORTH"){
         end = Point(m.img_src.cols , start.y);
