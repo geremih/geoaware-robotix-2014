@@ -15,7 +15,6 @@ class Landmark : public Waypoint
  public:
   string shape;
   string color;
-  
   Landmark();
   Landmark(cv::Point2f, string sh , string clr , int st, int en);
   Landmark(const Landmark&);
