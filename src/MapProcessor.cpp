@@ -465,14 +465,13 @@ bool MapProcessor::landmarkComp( Landmark l1 , Landmark l2){
 void MapProcessor::shortestPath(){
 
   fillAllAdjMat();
-
-
+  //clandmarks is landmarks with the waypoints included
   cout<< "clandmarks is"<< endl;
-
   for(int i = 0 ; i < clandmarks.size(); i++){
     cout<< clandmarks[i].idx << clandmarks[i].color << " "<< clandmarks[i].shape << endl;
 
   }
+  
   //stores all hexagons, start and points
   std::deque<Landmark> hexagon_list;
   std::deque<Landmark> min_distance_hexagon_list;
@@ -484,7 +483,7 @@ void MapProcessor::shortestPath(){
   //storage for floyd warshall
   std::vector<std::vector<int> > distances(clandmarks.size(), vector<int>(clandmarks.size(),DIST_MAX));
   std::vector<std::vector<int> > next(clandmarks.size(), vector<int>(clandmarks.size(),-1));
-
+  allPairsShortestDistance( clandmarks , distances , next); 
   //vectors of landmark paths corresponding to each start_list element
 
 
@@ -504,7 +503,7 @@ void MapProcessor::shortestPath(){
         
   std::vector< std::vector<Landmark> > paths(start_list.size());
   //run floyd warshal
-  allPairsShortestDistance( clandmarks , distances , next); 
+  
 
   //helpers to find out the perfect path
 
@@ -554,6 +553,7 @@ void MapProcessor::shortestPath(){
 }
 
 
+//void MapProcessor::getPathandDistance( deque<Landmark> hexagon_list , )
 void MapProcessor::allPairsShortestDistance( std::vector<Landmark> vertices , std::vector<std::vector<int> > & distances , std::vector<std::vector<int> > & next ){
 
   // initialize diagonal
@@ -720,6 +720,12 @@ void MapProcessor::addTunnel(  string orientation , vector<Landmark>& path_taken
         }
     }
 
+  /*
+    ALGO
+    make a new list of unvisited hexagons
+    making the newly found landmark as the start point, find min distance again, if it is lesser 
+
+   */
   vector<Landmark> new_path;
   bool takePath = true;
   for(int i =last_landmark+1; i< path_taken.size(); i++){
