@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
   m.displayMap();
   m.printLandmarks();
   
-  //MapProcessor mp(m);
+  MapProcessor mp(m);
   //mp.printLandmarks();
   //mp.displayConnections();
   //mp.displayRoute();
