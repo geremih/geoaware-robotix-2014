@@ -22,7 +22,7 @@ Map::Map(const string path)
   img_arena = obtainArenaImg();
   corners = getCorners(img_arena);
   landmarks = getLandmarks();
-  TJs = getTJs();
+  //TJs = getTJs();
 }
 
 Map::Map(const Map& M)
@@ -193,6 +193,7 @@ void Map::addLandmark(std::vector<Landmark>& landmarks, std::vector<cv::Point>& 
 {
   cv::Point2f center(0.f,0.f);
   float radius = 0.f;
+  cout << "adding symbol " << symbol << endl;
   cv::minEnclosingCircle(symbol,center,radius);
   //cv::circle(img_landmarks, center, radius, CV_RGB(100,200,255), 2);
   
@@ -261,7 +262,12 @@ std::vector<Landmark> Map::getLandmarks()
 	  }*/
       
       cleanEdges(approx,actual);
-      
+      if(actual.size() < 3 || cv::contourArea(approx) < MIN_AREA)
+	{
+	  actual.clear();
+	  continue;
+	}	  
+      //cout << "approx.size = " << approx.size() << ", actual.size = " << actual.size() << endl;
       int vtc = actual.size();
       if(vtc==3)
 	setLabel(img_dst, string("TRI").append(convertInt(i)), contours[i]);
