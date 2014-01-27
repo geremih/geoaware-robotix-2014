@@ -578,7 +578,6 @@ void MapProcessor::populateAllPairDistance( std::vector<Landmark> vertices ){
     }
   }
 
-
   // Floyd-Warshall
   // Add nodes between (first 1 then 2, 3 till n) and look if
   // distance is shorter
@@ -657,7 +656,7 @@ void MapProcessor::drawPath( vector<Landmark> path)
 }
 
 
-void MapProcessor::addTunnel(  string direction , vector<Landmark>& path_taken , int last_landmark , float approx = .5){
+bool MapProcessor::tunnelDilemma(  string direction , vector<Landmark>& path_taken , int last_landmark ,  vector<Landmark>& new_path , float approx = .5){
 
   /* orienation should be of the form LEFT or RIGHT*/
   Landmark previous = path_taken[last_landmark];
@@ -725,7 +724,6 @@ void MapProcessor::addTunnel(  string direction , vector<Landmark>& path_taken ,
         
       if(blue<=BLACK_THRESHOLD && green<=BLACK_THRESHOLD && red<=BLACK_THRESHOLD) //white or black
         {
-
           inWall = true;
         }
     }
@@ -750,11 +748,10 @@ void MapProcessor::addTunnel(  string direction , vector<Landmark>& path_taken ,
   double curr_distance;
   deque< Landmark> min_hexagon_list;
   bool takeTunnel = false;
-  vector<Landmark> new_path , temp_path;
+  vector<Landmark>  temp_path;
   hexagon_list.push_back(path_taken[path_taken.size()-1]);
   for(int i = 0; i < clandmarks.size() ;i++)
     {
-
       if(isConnected( exit, clandmarks[i].centroid ) ){
         hexagon_list.push_front( clandmarks[i]);
         curr_distance = getShortestDistanceandPath( hexagon_list , min_hexagon_list);

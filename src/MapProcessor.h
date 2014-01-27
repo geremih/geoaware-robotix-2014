@@ -32,7 +32,7 @@ class MapProcessor
   void displayConnections();
   void displayRoute();
   void printRoute();
-  void addTunnel(  string orientation , vector<Landmark>& path_taken , int last_landmark , float approx);
+  bool tunnelDilemma(  string orientation , vector<Landmark>& path_taken , int last_landmark , vector<Landmark>& new_path , float approx);
  private:
   std::vector<Landmark> landmarks;
   std::vector<std::vector<int> > distances;
