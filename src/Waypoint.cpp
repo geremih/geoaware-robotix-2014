@@ -9,6 +9,7 @@ Waypoint::Waypoint()
   end = -1;
   action = -1;
   idx = -1;
+  visited = false;
 }
 
 Waypoint::Waypoint(cv::Point2f ctr, int st, int en)
@@ -18,6 +19,7 @@ Waypoint::Waypoint(cv::Point2f ctr, int st, int en)
   end = en;
   action = -1;
   idx = -1;
+  visited = false;
 }
 
 Waypoint::Waypoint(cv::Point2f ctr, int st, int en, int index)
@@ -27,6 +29,7 @@ Waypoint::Waypoint(cv::Point2f ctr, int st, int en, int index)
   end = en;
   action = -1;
   idx = index;
+  visited = false;
 }
 
 Waypoint::~Waypoint()

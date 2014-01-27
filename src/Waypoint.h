@@ -17,7 +17,7 @@ class Waypoint
   int start,end;
   int action;
   int idx;
-  
+  bool visited;
   Waypoint();
   Waypoint(cv::Point2f ctr, int st, int en);
   Waypoint(cv::Point2f ctr, int st, int en, int index);
