@@ -523,10 +523,7 @@ void MapProcessor::shortestPath(){
     }
   hexagon_list.push_back(end_landmark);
         
-  std::vector< std::vector<Landmark> > paths(start_list.size());
-  //run floyd warshal
-  
-
+  paths = std::vector< std::vector<Landmark> > (start_list.size());
   //helpers to find out the perfect path
 
   double min_distance , curr_distance;

@@ -23,7 +23,7 @@ class MapProcessor
   cv::Mat img_connections;
   cv::Mat img_route;
   std::vector<Waypoint*> route;
-  
+  vector< vector <Landmark> > paths;
   MapProcessor();
   MapProcessor(Map inp_map);
   ~MapProcessor();
