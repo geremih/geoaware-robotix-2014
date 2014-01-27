@@ -521,6 +521,12 @@ void MapProcessor::shortestPath(){
 
       }
     }
+
+  if(start_list.size() == 0){
+    cout<<"Shushman, you idiot, where are the start symbols you promised?";
+    exit(1);
+      
+  }
   hexagon_list.push_back(end_landmark);
         
   paths = std::vector< std::vector<Landmark> > (start_list.size());
@@ -529,10 +535,15 @@ void MapProcessor::shortestPath(){
   double min_distance , curr_distance;
   //Find the correct path for each different start_list
   for(int i=0;i < start_list.size() ; i++){
+    
     hexagon_list.push_front(start_list[i]);
+    
     min_distance = getShortestDistanceandPath( hexagon_list  , min_distance_hexagon_list);
+    
     std::vector<Landmark> temp_path;
+    
     paths[i].push_back( min_distance_hexagon_list[0]);
+    
     for(int j=0; j< min_distance_hexagon_list.size() -1 ; j++)
       {
                                         
