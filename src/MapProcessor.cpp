@@ -495,7 +495,7 @@ void MapProcessor::shortestPath(){
   
   cout<< "clandmarks is"<< endl;
   for(int i = 0 ; i < clandmarks.size(); i++){
-    cout<< clandmarks[i].idx << clandmarks[i].color << " "<< clandmarks[i].shape << endl;
+    cout<< clandmarks[i].idx <<" "<< clandmarks[i].color << " "<< clandmarks[i].shape << endl;
 
   }
   
@@ -584,7 +584,7 @@ void MapProcessor::populateAllPairDistance( std::vector<Landmark> vertices ){
                                  
 	
   // Print out final distance matrix
-  cout<< "The distance matrix is "<<endl;
+  /*  cout<< "The distance matrix is "<<endl;
   for(int i = 0; i < vertices.size(); i++){
     for(int j = 0; j < vertices.size(); j++)
       cout << distances[i][j] << " ";
@@ -597,6 +597,7 @@ void MapProcessor::populateAllPairDistance( std::vector<Landmark> vertices ){
       cout << next[i][j] << " ";
     cout << endl;
   }
+  */
 
 }
 
@@ -607,16 +608,17 @@ std::vector<Landmark> MapProcessor::getPath(int i, int  j){
 
   // TODO: this should be made something that says its not possible to reach
   if (distances[i][j] == DIST_MAX){
-    cout<< i << " and " << j << " are not connected" <<endl;
-                
+    // cout<< i << " and " << j << " are not connected" <<endl;
     return path;
 
   }
+  
   int intermediate = next[i][j];
   if (intermediate ==  -1){
+    /*
     cout<< i << " and " << j << " are directly connected" <<endl;
     cout<<"Returning"<<endl;
-
+    */
     return path;
   }
   else {
@@ -737,7 +739,6 @@ void MapProcessor::addTunnel(  string direction , vector<Landmark>& path_taken ,
         hexagon_list.push_back( clandmarks[i]);
     }
 
-  double possible_distance;
   double curr_distance;
   deque< Landmark> min_hexagon_list;
   bool takeTunnel = false;
@@ -751,16 +752,15 @@ void MapProcessor::addTunnel(  string direction , vector<Landmark>& path_taken ,
         curr_distance = getShortestDistanceandPath( hexagon_list , min_hexagon_list);
         hexagon_list.pop_front();
         if(curr_distance < distance_left){
+          takeTunnel = true;
           new_path.clear();
           new_path.push_back( min_hexagon_list[0]);
           for(int j=0; j< min_hexagon_list.size() -1 ; j++)
             {
               //getPath only returns the intermediate path
               temp_path =  getPath(min_hexagon_list[j].idx , min_hexagon_list[j+1].idx );
-
               new_path.insert( new_path.end() , temp_path.begin() , temp_path.end());
               new_path.push_back( min_hexagon_list[j+1]);
-                                        
             }
         }
       }
