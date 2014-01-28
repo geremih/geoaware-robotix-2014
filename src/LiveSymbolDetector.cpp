@@ -41,7 +41,7 @@ void LiveSymbolDetector::detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat e
   
   int vtc;
   cv::Scalar clr;
-  int i;
+  int i, j;
   
   // used to store all detected shapes in 'edges'
   std::vector<cv::Point2f> centers;
@@ -59,6 +59,12 @@ void LiveSymbolDetector::detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat e
       
       if (std::fabs(cv::contourArea(contours[i])) < 100 || !cv::isContourConvex(approx) || vtc<3)
       	continue;
+
+      for(j=0;j<actual.size();++j)
+	{
+	  clr = CV_RGB(rand()%255,rand()%255,rand()%255);
+	  cv::circle(src,actual[j] , 5, clr, 2, 8, 0 );	
+	}
       
       if(vtc==3)
 	addShape(src_thresh, centers, radii, areas, shapes, colors, actual);
@@ -79,7 +85,7 @@ void LiveSymbolDetector::detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat e
 	  // to determine the shape of the contour
 	  if (vtc == 4 && mincos >= -0.1 && maxcos <= 0.3)
 	    addShape(src_thresh, centers, radii, areas, shapes, colors, actual);
-	  else if (vtc == 6 && mincos >= -0.55 && maxcos <= -0.45)
+	  else if (vtc == 6 && mincos >= -0.65 && maxcos <= -0.45)
 	    addShape(src_thresh, centers, radii, areas, shapes, colors, actual);
 	}
       else if(vtc>=8)
@@ -153,7 +159,7 @@ void LiveSymbolDetector::getSymbol(cv::Mat src, string& shape, string& color)
 {  
   cv::Mat  src_gray, src_thresh;
   cv::Mat edges_normal, edges_smooth;
-  cv::Mat eroded, dilated;
+  cv::Mat eroded, dilated, dilated_blur;
   cv::Mat kernel = Mat::ones(Size(7, 7), CV_8U);
 
   //cap >> src;

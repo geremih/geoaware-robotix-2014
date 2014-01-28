@@ -16,7 +16,7 @@ class LiveSymbolDetector
 {
  public:
   LiveSymbolDetector();
-  void getSymbol(string& shape, string& color);
+  void getSymbol(cv::Mat frame, string& shape, string& color);
  private:
   static double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
   string vtxToShape(int vtc);

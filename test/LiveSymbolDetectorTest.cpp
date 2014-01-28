@@ -143,7 +143,7 @@ void detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges)
   
   int vtc;
   cv::Scalar clr;
-  int i;
+  int i,j;
   
   // used to store all detected shapes in 'edges'
   std::vector<cv::Point2f> centers;
@@ -152,13 +152,31 @@ void detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges)
   std::vector<string> shapes;
   std::vector<string> colors;
   
+  // cout << "number of contours : " << contours.size() << endl;
+  // for(i=0;i<contours.size();++i)
+  //   {
+  //     cout << contours[i] << endl;
+  //     for(j=0;j<contours[i].size();++j)
+  // 	{
+  // 	  clr = CV_RGB(rand()%255,rand()%255,rand()%255);
+  // 	  cv::circle(src,contours[i][j] , 5, clr, 2, 8, 0 );	
+  // 	}
+  //   }
+
   for(i=0;i<contours.size();++i)
     {
       actual.clear();
       cv::approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, true);
       cleanEdges(approx,actual);
       vtc = actual.size();
+      cout << "approx : " << approx.size() << ", actual : " << actual.size() << endl;
       
+      for(j=0;j<actual.size();++j)
+	{
+	  clr = CV_RGB(rand()%255,rand()%255,rand()%255);
+	  cv::circle(src,actual[j] , 5, clr, 2, 8, 0 );	
+	}
+
       if (std::fabs(cv::contourArea(contours[i])) < 100 || !cv::isContourConvex(approx) || vtc<3)
       	continue;
       
@@ -176,12 +194,12 @@ void detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges)
 	  // Get the lowest and the highest degree
 	  double mincos = cos.front();
 	  double maxcos = cos.back();
-
+	  cout << "mincos : " << mincos << ", maxcos : " << maxcos << endl;
 	  // Use the degrees obtained above and the number of vertices
 	  // to determine the shape of the contour
 	  if (vtc == 4 && mincos >= -0.1 && maxcos <= 0.3)
 	    addShape(src_thresh, centers, radii, areas, shapes, colors, actual);
-	  else if (vtc == 6 && mincos >= -0.55 && maxcos <= -0.45)
+	  else if (vtc == 6 && mincos >= -0.65 && maxcos <= -0.45)
 	    addShape(src_thresh, centers, radii, areas, shapes, colors, actual);
 	}
       else if(vtc>=8)
@@ -260,14 +278,14 @@ int main()
   //   }
 
   cv::Mat src, src_gray, src_thresh;
-  cv::Mat edges_normal, edges_smooth;
-  cv::Mat eroded, dilated;
+  cv::Mat edges_normal, edges_blur;
+  cv::Mat eroded, dilated, dilated_blur;
   cv::Mat kernel = Mat::ones(Size(7, 7), CV_8U);
 
   while(true)
     {
       //cap >> src;
-       src = cv::imread("../assets/samples/symbols/shape_1.jpg");
+       src = cv::imread("../assets/samples/symbols/shape_3.jpg");
       
       cv::cvtColor( src, src_gray, COLOR_RGB2GRAY );
       //cv::blur( src_gray, src_gray_smooth, Size( 5, 5 ), Point(-1,-1) );
@@ -280,8 +298,11 @@ int main()
       dilated = eroded.clone();
       cv::dilate(eroded,dilated,kernel);
       
+      //cv::medianBlur(dilated, dilated_blur, 7);
+      //cv::Canny(dilated_blur, edges_blur, 50, 200, 3);
       cv::Canny(dilated, edges_normal, 50, 200, 3 );
 
+      //detectSymbol(src, src_thresh, edges_blur);
       detectSymbol(src, src_thresh, edges_normal);
       
       cv::imshow("src",src);
@@ -289,8 +310,7 @@ int main()
       cv::imshow("eroded",eroded);
       cv::imshow("dilated",dilated);
       cv::imshow("edges_normal",edges_normal);
-      
-      if(cv::waitKey(33) == 'q')
+      if(cv::waitKey(0) == 'q')
 	break;
     }
   return 0;
