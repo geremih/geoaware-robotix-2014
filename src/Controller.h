@@ -2,6 +2,9 @@
 #define CONTROLLER_H
 
 #include "GeoAware.h"
+#include "Locomotor.h"
+#include "MapProcessor.h"
+#include "LiveSymbolDetector.h"
 
 #define STATE_PANIC -1
 #define STATE_START 0
@@ -21,23 +24,40 @@
 #define EVT_FALSE 95
 #define EVT_EPS 94
 #define EVT_END 93
+#define EVT_NONE 92
+
+#define MAX_ATTEMPTS 5
+
+#define AMT_LANE 1
+#define AMT_TURN 10
 
 class Controller
 {
  public:
-  int curr_state;
-  int curr_index;
+  int currState;
+  int lastIndex;
   string orientation;
   bool pathFound;
   std::vector<Landmark> path;
   Map m;
   MapProcessor mp;
   LiveSymbolDetector symbolDetector;
-  Controller(MapProcess mp);
+  Locomotor *locomotor;
+  Controller(string path);
+  static Controller* getInstance(MapProcessor inp_mp);
   ~Controller();
+  void start();
   
  private:
+  void mainLoop();
+  int move(string dir, int amt);
+  int getNextState(int curr_state, int event);
+  int compareSymbol();
+  void selectPath();
+  int followLane();
   
+  static bool instanceFlag;
+  static Controller* single;
 };
 
 #endif

@@ -22,7 +22,7 @@ Map::Map(const string path)
   img_arena = obtainArenaImg();
   corners = getCorners(img_arena);
   landmarks = getLandmarks();
-  //TJs = getTJs();
+  TJs = getTJs();
 }
 
 Map::Map(const Map& M)
