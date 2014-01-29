@@ -8,6 +8,7 @@
 #include <string>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 #include <map>
 #include <vector>
 
