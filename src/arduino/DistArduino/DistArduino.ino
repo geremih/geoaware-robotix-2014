@@ -16,7 +16,7 @@ void setup()
 { 
   Serial.begin(9600);
   Serial.println("starting");
-  myservo.attach(9);  // attaches the servo on pin 9 to the servo object
+  myservo.attach(8);  // attaches the servo on pin 9 to the servo object
   pinMode(PIN_Trig, OUTPUT);
   pinMode(PIN_echo, INPUT);
   
