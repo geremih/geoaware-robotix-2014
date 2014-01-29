@@ -1,30 +1,27 @@
 #include "Controller.h"
 
-bool Controller::instanceFlag = false;
+Controller::instanceFlag = false;
 
 Controller* Controller::single = NULL;
 
 Controller* Controller::getInstance(string path)
 {
-  if(! instanceFlag)
+  if(!instanceFlag)
     {
       single = new Controller(path);
       cout<<"Created new controller instance"<<endl;
       instanceFlag = true;
-      return single;
     }
-  else
-    {
-      return single;
-    }
+  return single;
 }
 
 Controller::Controller(string path):
-  lastIndex(0), currState(STATE_START), orientation("?"), pathFound(false), m(path), mp(m), symbolDetector()
+  lastIndex(0), tunnelMode(false), orientation("?"), pathFound(false), m(path), mp(m), symbolDetector()
 {
   m.displayMap();
   m.printLandmarks();
   locomotor = Locomotor::getInstance();
+  cam = CamController::getInstance();
 }
 
 void Controller::start()
@@ -32,17 +29,68 @@ void Controller::start()
   mainLoop();
 }
 
-void Controller::testLoop()
+void Controller::processPassage(string passageDir)
 {
-  bool flag;
+  int flag;
+  string orientation_next;
+  std::vector<Landmark> newpath;
+  
+  // tunnel dilemma sends newpath consistent with lastIndex
+  // check params (pass by ref tunnelExitDir)
+  flag = mp.tunnelDilemma(passageDir,path,lastIndex,newpath,tunnelExitDir);
+  
+  if(flag == FOUND_TUNNEL_AND_TAKE && pathFound)
+    {
+      // traverse tunnel
+      tunnelMode = true;
+      // facePassage will align and turn to face the passage (and enter slightly so that lane detection can easily pick up ?)
+      locomotor->facePassage(passageDir);
+      path = newpath;
+    }
+  else if(flag == FOUND_TUNNEL_DONT_TAKE && pathFound)
+    {
+
+    }
+  else if(flag == NOT_FOUND_TUNNEL)
+    {
+      // found a T-Junction
+      if(pathFound == false)
+	{
+	  // try to select the path we are on and update orientation
+	  for(int i=0;i<mp.paths.size();++i)
+	    {
+	      if(mp.paths[i].size() > 1 && mp.paths[i][1].shape == "TJ") // also check for the reqd direction here, update that
+		{
+		  path = mp.paths[i];
+		  orientation = MapProcessor::getOrient(path[lastIndex],path[lastIndex+1]);
+		  break;
+		}
+	    }
+	  pathFound = true;
+	}
+	      
+      orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
+      
+      // if orientations match, take left at T-Junction
+      if(orientation_next == passageDir)
+	locomotor->facePassage(passageDir);
+      ++lastIndex;
+    }
+}
+  
+void Controller::mainLoop()
+{
+  int flag;
   bool tunnelMode = false;
   string tunnelExitDir;
   string passageDir;
+  string orientation_next, direction;
+  string shape, color;
+  bool pLeft = false;
+  bool pRight = false;
   int distance_front; //cm
   
-  std::vector<Landmark> newpath;
-  
-  while(1)
+  while(true)
     {
       distance_front = locomotor->getDistanceFront();
       
@@ -52,136 +100,81 @@ void Controller::testLoop()
 	move("STRAIGHT",AMT_LANE);
       
       CamController::isPassage(pLeft,pRight);
-      
+
+      // may cause infinite loop?
       if(pLeft)
-	{
-	  passageDir = "LEFT";
-	  newpath.clear();
-	  // tunnel dilemma sends newpath consistent with lastIndex
-	  if(mp.tunnelDilemma(passageDir,path,lastIndex,newpath,tunnelExitDir) == FOUND_TUNNEL)
-	    {
-	      tunnelMode = 1;
-	      // traverse tunnel
-	      // takepassage will align and turn to face the passage
-	      takePassage(passageDir);
-	      path = newpath;
-	    }
-	  else
-	    {
-	      // found a TJ
-	      if(pathFound == false)
-		{
-		  //path = ... iterate paths
-		  // update orientation during iteration
-		  orientation = MapProcessor::getOrient(path[lastIndex],path[lastIndex+1]);
-		  pathFound = true;
-		}
-	      orientation_next = MapProcessor::getOrient(path[lastIndex+1],route[lastIndex+2]);
-	      if(orientation_next == "LEFT")
-		takePassage(passageDir);
-	      ++lastIndex;
-	    }
-	}
+	processPassage("LEFT");
       if(pRight)
-	{
-	  passageDir = "RIGHT";
-	  newpath.clear();
-	  // tunnel dilemma sends newpath consistent with lastIndex
-	  if(mp.tunnelDilemma(passageDir,path,lastIndex,newpath,tunnelExitDir) == FOUND_TUNNEL)
-	    {
-	      tunnelMode = 1;
-	      // traverse tunnel
-	      // takepassage will align and turn to face the passage
-	      takePassage(passageDir);
-	      path = newpath;
-	    }
-	  else
-	    {
-	      // found a TJ
-	      if(pathFound == false)
-		{
-		  // TODO
-		  //path = ... iterate paths
-		  // update orientation during iteration
-		  orientation = MapProcessor::getOrient(path[lastIndex],path[lastIndex+1]);
-		  pathFound = true;
-		}
-	      orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
-	      if(orientation_next == "RIGHT")
-		takePassage(passageDir);
-	      ++lastIndex;
-	    }
-	}
+	processPassage("RIGHT");
+
       if(distance_front < LANE_FOLLOW_MIN)
 	{
+	  // reached end of corridor
+	  // Cases :
+	  // 1. end of tunnel
+	  // 2. corner
+	  // in case of a T-Junction we would have already turned to face it above
+	  
 	  if(tunnelMode)
 	    {
 	      // exiting the tunnel
 	      move(tunnelExitDir,AMT_TURN);
+	      tunnelExitDir = "?";
 	      tunnelMode = false;
 	    }
 	  else
 	    {
-	      // reached a corner (in case of TJ, we would have already turned)
+	      // reached a corner
+	      
 	      // if the next symbol is end
-	      if(lastIndex == path.size() - 2)
+	      if(pathFound && lastIndex == path.size() - 2)
 		{
 		  cout << "DONE!" << endl;
 		  exit(0);
 		}
-	      
-	      flag = compareSymbol();
+
+	      flag = detectSymbol(shape, color);
 	      if(flag == FOUND_SYMBOL)
 		{
-		  if(pathFound == false)
+		  if(!pathFound)
 		    {
-		      //path = ... iterate paths
-		      // update orientation during iteration
-		      orientation = MapProcessor::getOrient(path[lastIndex],path[lastIndex+1]);			      
+		      // try to select the path we are on and update orientation
+		      for(int i=0;i<mp.paths.size();++i)
+			{
+			  if(mp.paths[i].size() > 1 && mp.paths[i][1].shape == shape && mp.paths[i][1].color == color)
+			    {
+			      path = mp.paths[i];
+			      orientation = MapProcessor::getOrient(path[lastIndex],path[lastIndex+1]);
+			      break;
+			    }
+			}
 		      pathFound = true;
+		      orientation = MapProcessor::getOrient(path[lastIndex],path[lastIndex+1]);			      
 		    }
 		  else
 		    {
-		      // turn in reqd dir and upd orientation
-		      orientation_next = getOrient(path[lastIndex+1],path[lastIndex+2]);
-		      direction = getDir(orientation,orientation_next);
-		      move(direction,AMT_TURN);
-		      orientation = orientation_next;
+		      if(shape == path[lastIndex+1].shape && color == path[lastIndex+1].color)
+			{
+			  // turn in reqd dir and upd orientation
+			  orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
+			  direction = MapProcessor::getDir(orientation,orientation_next);
+			  move(direction,AMT_TURN);
+			  orientation = orientation_next;
+			  lastIndex++;
+			}
+		      else
+			{
+			  // mario panic :D
+			}
 		    }
-		  lastIndex++;
+
+		}
+	      else
+		{
+		  // reached end of corridor, but didn't detect any symbol!
 		}
 	    }
 	}
-    }
-}
-
-void Controller::mainLoop()
-{
-  int event = -1;
-  
-  while(true)
-    {
-      switch(currState)
-	{
-	case STATE_START:
-	  break;
-	case STATE_FOLLOW_LANE:
-	  event = followLane();
-	  break;
-	case STATE_TUNNEL_DILEMMA:
-	  event = tunnelDilemma();
-	  break;
-	case STATE_COMPARE_SYMBOL:
-	  event = compareSymbol();
-	  break;
-	case STATE_LEFT_TURN:
-	  event = move("LEFT", AMT_TURN);
-	  break;
-	case STATE_RIGHT_TURN:
-	  event = move("RIGHT", AMT_TURN);
-	  break;
-	}
-      currState = getNextState(currState,event);
     }
 }
 
@@ -202,117 +195,44 @@ void Controller::move(string dir, int amt)
     sleep(2);
 }
 
-int Controller::getNextState(int curr_state, int event)
+int Controller::detectSymbol(string& shape, string& color)
 {
-  if(event == EVT_NONE)
-    return curr_state;
-
-  switch(curr_state)
-    {
-    case STATE_START:
-      return STATE_FOLLOW_LANE;
-
-    case STATE_FOLLOW_LANE:
-      if(event==EVT_CHECK_TUNNEL)
-	return STATE_CHECK_TUNNEL;
-      else if(event == EVT_END)
-	return END;
-
-    case STATE_CHECK_PASSAGE:
-      if(event == EVT_TRUE)
-	return STATE_CHECK_TUNNEL;
-      if(event == EVT_FALSE)
-	return STATE_COMPARE_SYMBOL;
-      
-    case STATE_TUNNEL_DILEMMA:
-      if( == EVT_TRUE)
-	return STATE_ENTER_TUNNEL;
-      else if(action == EVT_FALSE)
-	return STATE_FOLLOW_LANE;
-
-    case STATE_ENTER_TUNNEL:
-      return STATE_FOLLOW_LANE;
-
-    case STATE_COMPARE_SYMBOL:
-      if(event == EVT_TRUE)
-	return STATE_TURN;
-      else
-	return STATE_PANIC;
-
-    case STATE_LEFT_TURN:
-      return STATE_FOLLOW_LANE;
-      
-    case STATE_RIGHT_TURN:
-      return STATE_FOLLOW_LANE;
-      
-    default:
-      return STATE_PANIC;
-    }
-}
-
-int Controller::compareSymbol()
-{
-  // detect the symbol
-  // compare with expected symbol
-  // return accordingly
-  string shape;
-  string color;
   cv::Mat frame;
-  
   VideoCapture cap(0);
-  
   int i = 0;
-  while(i<MAX_ATTEMPTS)
+  string prevShape,prevColor;
+  string currShape,currColor;
+
+  // if 2 successive frames detect same symbol, return it
+  cap >> frame;
+  symbolDetector.getSymbol(frame,prevShape,prevColor);
+  while(i<MAX_ATTEMPTS - 1)
     {
       cap >> frame;
-      symbolDetector.getSymbol(frame,shape,color);
-      if(shape == path[lastIndex+1].shape && color == path[lastIndex+1].color)
-	return FOUND_SYMBOL;
+      symbolDetector.getSymbol(frame,currShape,currColor);
+      if(currShape == prevShape && currColor == prevColor)
+	{
+	  shape = currShape;
+	  color = currColor;
+	  return FOUND_SYMBOL;
+	}
+      prevShape = currShape;
+      prevColor = currColor;
       ++i;
+      cv::waitKey(33);
     }
   return NOT_FOUND_SYMBOL;
 }
 
-void Controller::selectPath()
-{
-  // follow the lane until a symbol is detected
-  // based on symbol, select the path
-  VideoCapture cap(0);
-  cv::Mat frame;
-  string shape, color;
 
-  // ... add lane follow code here
-  // ... stop at a corner
-  
-  while(!pathFound)
-    {      
-      cap >> frame;
-      symbolDetector.getSymbol(frame,shape,color);
-      
-      // assumption : each path will have start symbol yellow at index 0
-      // what if the landmark reached first is not part of any path ?
-      for(int i = 0; i < mp.paths.size(); ++i)
-	{
-	  if(mp.paths[i].size() >=1 && mp.paths[i][1].shape == shape && mp.paths[i][1].color == color)
-	    break;
-	}
-      if(i < mp.paths.size())
-	{
-	  path = mp.paths[i];
-	  curr_index = 1;
-	  //orientation = ...;
-	  pathFound = true;
-	}
-    }  
-}
-
-int Controller::followLane()
+void Controller::followLane()
 { 
   std::vector<cv::Mat> frames(MAX_ATTEMPTS);
+  string dir;
   VideoCapture cap(0);
   int i = 0;
   while(i<MAX_ATTEMPTS)
-    {
+   {
       cap >> frames[i++];
       cv::waitKey(33);
     }
@@ -320,8 +240,6 @@ int Controller::followLane()
   dir = CamController::laneFollowDir(frames);
   
   move(dir, AMT_LANE);
- 
-  return EVT_TUNNEL_DILEMMA;
 }
 
 
