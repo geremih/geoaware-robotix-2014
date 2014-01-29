@@ -31,6 +31,8 @@
 #define AMT_LANE 1
 #define AMT_TURN 10
 
+#define LANE_FOLLOW_MIN 15
+
 class Controller
 {
  public:

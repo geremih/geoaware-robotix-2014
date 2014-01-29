@@ -33,6 +33,10 @@ class MapProcessor
   void displayRoute();
   void printRoute();
   bool tunnelDilemma(  string orientation , vector<Landmark>& path_taken , int last_landmark , vector<Landmark>& new_path , float approx);
+
+  static string getOrient(Landmark l1, Landmark l2);
+  static string getDir(string orientation_curr, string orientation_next);
+
  private:
   std::vector<Landmark> landmarks;
   std::vector<std::vector<int> > distances;
@@ -51,9 +55,8 @@ class MapProcessor
   int ** initAdjMat();
   void fillAdjMat();
   void fillAllAdjMat();
-  string getDir(string orientation_curr, string orientation_next);
   string getOrient(Waypoint *w1, Waypoint *w2);
-  string getOrient(Landmark l1, Landmark l2);
+
   static string convertInt(int number);
 
 
