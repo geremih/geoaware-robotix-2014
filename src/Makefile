@@ -9,5 +9,9 @@ all : $(SOURCES) $(HEADERS)
 locomotor: Locomotor.cpp Locotest.cpp
 	g++ -o Locomotor Locomotor.cpp Locotest.cpp -lncurses
 
+soundCheck: SoundPlayer.cpp
+	g++ -g SoundCheck.cpp SoundPlayer.cpp -lSDL -lSDL_mixer
+
+
 clean:
 	rm GeoAware Locomotor 
