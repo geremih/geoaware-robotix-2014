@@ -9,12 +9,14 @@ using namespace std;
 class Locomotor
 {  
  public:
-  static std::ofstream device;
+  static std::ofstream loco_arduino;
+  static std::ofstream dist_arduino;
   void goLeft(int amount = 1);
   void goRight(int amount =1 );
   void goForward(int amount = 1);
   void goBackward(int amount = 1);
   void switchToKeyboard();
+  int getDistanceFront();
   static Locomotor* getInstance();
   Locomotor();
   Locomotor(const Locomotor&);

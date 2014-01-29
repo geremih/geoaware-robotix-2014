@@ -1,5 +1,5 @@
 #include"Locomotor.h"
-
+#include "GeoAware.h"
 
 using namespace std;
 
@@ -9,7 +9,8 @@ bool Locomotor::streamFlag = false;
 
 Locomotor* Locomotor::single = NULL;
 
-ofstream Locomotor::device;
+ofstream Locomotor::loco_arduino;
+ofstream Locomotor::dist_arduino;
 
 Locomotor::Locomotor(){
   //Start Serial Communication
@@ -18,11 +19,12 @@ Locomotor::Locomotor(){
 
 void Locomotor::writeToDevice( char c){
   if(!streamFlag){
-    Locomotor::device.open("/dev/ttyUSB0" , std::ios_base::app);
+    Locomotor::loco_arduino.open(LOCO_ARDUINO , std::ios_base::app);
+    Locomotor::dist_arduino.open(DIST_ARDUINO , std::ios_base::app);
     streamFlag = true;
   }
-  Locomotor::device<<c;
-  device.flush();
+  Locomotor::loco_arduino<<c;
+  loco_arduino.flush();
 }
 
 Locomotor * Locomotor::getInstance()
@@ -42,7 +44,8 @@ Locomotor * Locomotor::getInstance()
 
 Locomotor::~Locomotor(){
   cout<<"Destructing Locomotor"<<endl;
-  device.close();
+  loco_arduino.close();
+  dist_arduino.close();
   instanceFlag = false;
 }
 
@@ -104,5 +107,9 @@ void Locomotor::switchToKeyboard(){
 }
 
 
+int Locomotor::getDistanceFront(){
+
+
+}
 
 
