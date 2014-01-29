@@ -1,28 +1,10 @@
 #include "CamController.h"
 
 using namespace cv;
-
 using namespace std;
 
-
-
-
-string CamController::laneFollowDir(vector<cv::Mat> frames){
-
-
-
-
-
-}
-
-void CamController::isPassage(bool& pLeft,bool& pRight){
-
-
-
-
-
-}
-
+#define TUNNEL_GAP 50
+#define LANE_ANGLE_THRESH 10
 
 
 float abs( float x , float y){
@@ -210,21 +192,6 @@ void drawLineSegments(Mat& ime , vector<Vec6f> segments ,  cv::Scalar color=cv::
 }
 
 
-int houghVote = 60;
-int cannyLower = 50;
-int cannyHigher = 250;
-Mat image;
-string argp;
-VideoCapture capture;
-
-
-void on_trackbar( int, void* )
-{
-  LaneDetect();
-}
-
-
-
 
 void removeSymbols(Mat& img){
   
@@ -269,14 +236,13 @@ void removeSymbols(Mat& img){
       
     }
   
-  imshow("nosybold", img);
+  imshow("Removed symbols from frames", img);
 }
 
+string detectTunnel(vector<Vec6f> segments , bool& pLeft , bool& pRight){
 
-void detectTunnel(vector<Vec6f> segments){
-
-  int tunnelGap= 50;
-
+  pLeft = pRight = false;
+  int tunnelGap= TUNNEL_GAP;
   for ( int i =0 ; i< segments.size(); i++)
     for( int j = i+1 ; j <segments.size(); j++){
       float distance = 99999999;
@@ -293,44 +259,45 @@ void detectTunnel(vector<Vec6f> segments){
           distance = ndist < distance ? ndist : distance;
           if(distance > tunnelGap){
             cout<<"Tunnel detected" <<endl;
+            if( segments[j][5] < (PI/2))
+              pLeft = true;
+            else
+              pRight = true;
           }
         }
     }
 }
 
-
 float slope( Point p1 , Point p2){
   return   atan((p2.y - p1.y)/(p2.x - p1.x)) * 180 / PI;
 }
 
-void LaneDetect(){
+void processVideo(Mat image , string type , bool& pLeft , bool& pRight){
 
-  namedWindow("Trackbars" , 1);
-  createTrackbar( "Hough Vote" , "Trackbars", &houghVote, 400, on_trackbar );
-  createTrackbar( "cannyLower" , "Trackbars", &cannyLower, 400, on_trackbar );
-  createTrackbar( "cannyHigher" , "Trackbars", &cannyHigher, 400, on_trackbar );
+  int houghVote = 60;
+  int cannyLower = 50;
+  int cannyHigher = 250;
 
-  if (image.empty())
-    return;
   Mat gray;
-  //remove colors
+  //remove symbols
+  blur( image , image, Size(3,3) );
   removeSymbols(image);
+  
   cvtColor(image,gray,CV_RGB2GRAY);
+  
   Rect roi(0,image.rows/3,image.cols-1,image.rows - image.rows/3);// set the ROI for the image
-  //set ROI dynamically
-  Mat imgROI = image(roi);
+  Mat imgROI = gray(roi);
   //Mat imgROI = image;
-  // Display the image
+
   imshow("Original Image",imgROI );
-  moveWindow("Original Image" , 400 , 0);
+  
   // Canny algorithm
   Mat contours;
   Canny(imgROI,contours,cannyLower,cannyHigher);
   Mat contoursInv;
   threshold(contours,contoursInv,128,255,THRESH_BINARY_INV);
+  
   imshow("Canny",contoursInv);
-
-
   
   int seg1, seg2;
   bool foundLane  = false;
@@ -340,6 +307,8 @@ void LaneDetect(){
   Mat hough(imgROI.size(),CV_8U,Scalar(0));
   vector<Vec6f> segments;
   bool noLane  = false;
+  lines.clear();
+  segments.clear();
   for(houghVote = 60 ; houghVote>=30; houghVote-=5){
     
     HoughLines(contours,lines,1,PI/180, houghVote);
@@ -360,14 +329,19 @@ void LaneDetect(){
     }
     // Display the detected line image
     imshow("Detected Lines with Hough",result);
+      
     segments  =getLineSegments( contoursInv, lines) ;
     drawLineSegments(contoursInv ,segments, Scalar(0));
-    detectTunnel(segments);
+      
+    if(type == "TUNNEL"){
+      detectTunnel(segments , pLeft , pRight);
+      return;
+    }
     
     for ( int i =0 ; i< segments.size(); i++)
       for( int j = i+1 ; j <segments.size(); j++){
         cout<< segments[i][5] << " " << segments[j][5] << " sum is " << (segments[i][5] + segments[j][5]) * 180 /PI<<endl;
-        if( abs ((segments[i][5] + segments[j][5])* 180 /PI - 180 ) < 10)
+        if( abs ((segments[i][5] + segments[j][5])* 180 /PI - 180 ) < LANE_ANGLE_THRESH)
           {
             seg1 = i;
             seg2 = j;
@@ -386,35 +360,85 @@ void LaneDetect(){
   }
 
   cout<<"Using hough vote " << houghVote<<endl;
+  imshow("Personal algo", contoursInv);
 
-
+  //seg1 is to the left of seg2
   if(foundLane){
     if( segments[seg1][5] > segments[seg2][5])
       {
-        int temp;
-        temp = seg1;
-        seg1 = seg2;
-        seg2 = temp;
+        swap( seg1 , seg2);
       }
 
     if( (180- segments[seg1][5] * 180/PI) < segments[seg2][5] * 180/PI)
-      cout<<"LEFT"<<endl;
-    else
-      cout<< "RIGHT"<<endl;
+      {
+        pRight = true;
+        pLeft = false;
+        cout<<"RIGHT"<<endl;
 
+      }
+    else{
+      pLeft = true;
+      pRight = false;
+      cout<< "LEFT"<<endl;
+    }
   }
   else{
+    pLeft = pRight = false;
     cout<<"Cant decide"<<endl;
   }
-  
-  //find seg
-  imshow("Personal algo", contoursInv);
+
   lines.clear();
-  waitKey(1000);
+
+
 }
 
+void CamController::isPassage(vector<cv::Mat> frames , bool& pLeft,bool& pRight){
+
+  pLeft = pRight = false;
+  int nLeft , nRight;
+  nLeft = nRight = 0;
+  for(int i =0 ; i < frames.size() ; i++){
+    
+    processVideo(frames[i],"TUNNEL" , pLeft , pRight );
+    if(pLeft) nLeft++;
+    if(pRight) nRight++;
+    
+  }
+
+  //TODO : Better dependency of nDir and pDir
+
+  if( nLeft > frames.size()/2 +1)
+    pLeft = true;
+  else
+    pLeft = false;
+  
+  if( nRight > frames.size()/2 +1)
+    pRight = true;
+  else
+    pRight = false;
 
 
+}
 
+string laneFollowDir(vector<cv::Mat> frames){
+  bool pLeft , pRight;
+  pLeft = pRight = false;
+  int nLeft , nRight;
+  nLeft = nRight = 0;
+  for(int i =0 ; i < frames.size() ; i++){
+    
+    processVideo(frames[i],"LANE" , pLeft , pRight );
+    if(pLeft) nLeft++;
+    if(pRight) nRight++;
+  }
 
+  //TODO: Make bools depend on the n's
+  if(pLeft)
+    return "LEFT";
+  else if(pRight)
+    return "RIGHT";
+  else
+    return "UNKNOWN";
+  
+}
 

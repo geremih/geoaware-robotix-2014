@@ -15,7 +15,7 @@ class CamController{
 
  public:
   string laneFollowDir(vector<cv::Mat> frames); // return direction
-  void isPassage(bool& pLeft,bool& pRight);
+  void isPassage(vector<cv::Mat> frames , bool& pLeft,bool& pRight);
 
   
 
