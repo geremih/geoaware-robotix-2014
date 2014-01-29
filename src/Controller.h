@@ -41,14 +41,13 @@ class Controller
  private:
   void mainLoop();
   void move(string dir, int amt);
-  void processPassage(string passageDir);
+  bool processPassage(string passageDir);
   int detectSymbol(string& shape, string& color);
-  int compareSymbol();
   void selectPath();
   void followLane();
   
   static bool instanceFlag;
   static Controller* single;
 };
-x
+
 #endif

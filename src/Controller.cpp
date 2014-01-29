@@ -1,6 +1,6 @@
 #include "Controller.h"
 
-Controller::instanceFlag = false;
+bool Controller::instanceFlag = false;
 
 Controller* Controller::single = NULL;
 
@@ -29,8 +29,10 @@ void Controller::start()
   mainLoop();
 }
 
-void Controller::processPassage(string passageDir)
+// returns whether turned or not
+bool Controller::processPassage(string passageDir)
 {
+  bool turned = false;
   int flag;
   string orientation_next;
   std::vector<Landmark> newpath;
@@ -46,10 +48,11 @@ void Controller::processPassage(string passageDir)
       // facePassage will align and turn to face the passage (and enter slightly so that lane detection can easily pick up ?)
       locomotor->facePassage(passageDir);
       path = newpath;
+      turned = true;
     }
   else if(flag == FOUND_TUNNEL_DONT_TAKE && pathFound)
     {
-
+      move("FORWARD",AMT_TURN);
     }
   else if(flag == NOT_FOUND_TUNNEL)
     {
@@ -73,15 +76,20 @@ void Controller::processPassage(string passageDir)
       
       // if orientations match, take left at T-Junction
       if(orientation_next == passageDir)
-	locomotor->facePassage(passageDir);
+	{
+	  locomotor->facePassage(passageDir);
+	  turned = true;
+	}
       ++lastIndex;
     }
+  return turned;
 }
   
 void Controller::mainLoop()
 {
   int flag;
   bool tunnelMode = false;
+  bool turned;
   string tunnelExitDir;
   string passageDir;
   string orientation_next, direction;
@@ -99,12 +107,12 @@ void Controller::mainLoop()
       else
 	move("STRAIGHT",AMT_LANE);
       
-      CamController::isPassage(pLeft,pRight);
+      cam->isPassage(pLeft,pRight);
 
       // may cause infinite loop?
       if(pLeft)
-	processPassage("LEFT");
-      if(pRight)
+	turned = processPassage("LEFT");
+      if(!turned && pRight)
 	processPassage("RIGHT");
 
       if(distance_front < LANE_FOLLOW_MIN)
@@ -172,6 +180,7 @@ void Controller::mainLoop()
 	      else
 		{
 		  // reached end of corridor, but didn't detect any symbol!
+		  // just keep following the lane
 		}
 	    }
 	}
@@ -237,7 +246,7 @@ void Controller::followLane()
       cv::waitKey(33);
     }
   
-  dir = CamController::laneFollowDir(frames);
+  dir = cam->laneFollowDir(frames);
   
   move(dir, AMT_LANE);
 }
