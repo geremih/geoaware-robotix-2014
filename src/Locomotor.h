@@ -16,6 +16,8 @@ class Locomotor
   void goRight(int amount =1 );
   void goForward(int amount = 1);
   void goBackward(int amount = 1);
+  void gradualLeft(int amount = 1);
+  void gradualRight(int amount = 1);
   void switchToKeyboard();
   int getDistanceFront();
   int getDistanceLeft();

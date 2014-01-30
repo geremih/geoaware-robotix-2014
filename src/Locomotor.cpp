@@ -3,6 +3,7 @@
 #include<stdlib.h>
 using namespace std;
 
+using namespace cv;
 bool Locomotor::instanceFlag = false;
 
 bool Locomotor::streamFlag = false;
@@ -87,6 +88,21 @@ void Locomotor::goBackward(int amount){
   }
 }
 
+
+void Locomotor::gradualLeft(int amount){
+  for(int i =0 ; i< amount;i++){
+    cout<< "Grad Left" << endl;
+    writeToLoco('z');
+  }
+}
+
+void Locomotor::gradualRight(int amount){
+  for(int i =0 ; i< amount;i++){
+    cout<< "Grad Right" << endl;
+    writeToLoco('c');
+  }
+}
+
 int Locomotor::getDistance(){
 
   /*
@@ -94,8 +110,8 @@ int Locomotor::getDistance(){
     -opost -onlcr -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke
     noflsh -ixon -crtscts");	//Activates the tty connection with the Arduino
   */
-	string cm;	
-	long int Time = time(NULL);
+  string cm;	
+  long int Time = time(NULL);
 
   //polling
   dist_arduino_in.clear();	//eof flag won't clear itself
@@ -146,7 +162,39 @@ void Locomotor::switchToKeyboard(){
   initscr();
   noecho();
   cbreak();
+
+  // Open the default camera
+  VideoCapture capture(0); 
+
+  // Get the properties from the camera
+  double width = capture.get(CV_CAP_PROP_FRAME_WIDTH);
+  double height = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
+ 
+  cout << "Camera properties\n";
+  cout << "width = " << width << endl <<"height = "<< height << endl;
+ 
+  // Create a matrix to keep the retrieved frame
+  Mat frame;
+ 
+  // Create a window to show the image
+  namedWindow ("Capture", CV_WINDOW_AUTOSIZE);
+
+
+  // Create the video writer
+  VideoWriter video("capture.avi",capture.get(CV_CAP_PROP_FOURCC),  capture.get(CV_CAP_PROP_FPS), cvSize((int)width,(int)height) );
+
+
   while(true){
+
+      capture >> frame;
+ 
+      // Save frame to video
+      video << frame;
+ 
+      // Show image
+      imshow("Capture", frame);
+
+    
     input = getch();
     switch(input){
     case 'a':
@@ -160,6 +208,24 @@ void Locomotor::switchToKeyboard(){
       break;
     case 'w':
       goForward();
+      break;
+    case 'z':
+      gradualLeft();
+      break;
+    case 'c':
+      gradualRight();
+      break;
+    case 'i':
+      servoFront();
+      break;
+    case 'j':
+      servoLeft();
+      break;
+    case 'l':
+      servoRight();
+      break;
+    case 'p':
+      getDistance();
       break;
     case 'x':
       return;

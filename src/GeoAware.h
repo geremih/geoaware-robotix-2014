@@ -3,6 +3,8 @@
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+
+
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -25,6 +27,6 @@
 #define EPSILON_TJ 25
 
 #define LOCO_ARDUINO "/dev/ttyUSB0"
-#define DIST_ARDUINO "/dev/ttyUSB0"
+#define DIST_ARDUINO "/dev/ttyACM0"
 
 #endif
