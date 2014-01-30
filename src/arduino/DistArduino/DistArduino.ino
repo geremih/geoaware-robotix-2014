@@ -6,7 +6,7 @@
 #include <Servo.h> 
  
 Servo myservo;  // create servo object to control a servo 
-                // a maximum of eight servo objects can be created 
+                // a maximum of eight servo objects can mbe created 
  
 int pos = 0;    // variable to store the servo position
 const int PIN_echo = 10, PIN_Trig = 11;
@@ -24,9 +24,7 @@ void setup()
  
  
 void loop() 
-{ 
-  getDistance();
-  delay(150);
+{
 }
 
 
@@ -56,6 +54,7 @@ void getDistance( ){
   Serial.print(cm);
   Serial.print("cm");
   Serial.println();
+  delay(150);
 }
 
 void goToPos( int pos){
@@ -79,6 +78,9 @@ void serialEvent() {
       break;
     case 'a':
       goToPos(180);
+      break;
+    case 'p':
+      getDistance();
       break;
     }
   }

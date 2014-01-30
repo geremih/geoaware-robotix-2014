@@ -1,4 +1,4 @@
-const int PIN_echo = 8, PIN_Trig = 9;
+const int PIN_echo = 10, PIN_Trig = 11;
 
 long microsecondsToInches(long microseconds) {
   // According to Parallax's datasheet for the PING))), there are
