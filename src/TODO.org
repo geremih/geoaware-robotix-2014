@@ -1,0 +1,26 @@
+
+* Align to passage
+** TODO  Servo delay on laptop to accomodate turning time
+** TODO Variable which keeps track of current angle of servo to save delay time
+** TODO Getting correct distance measurement ( no stale ones)
+
+* Lane detection
+** TODO Test code
+** TODO Remove horizontal lines and add code for only single side seen
+** TODO Detect tunnel with intial part of lane not seen
+
+* Symbol Detection
+** TODO Graininess
+
+* Tunnel Detection
+** TODO Test code
+** TODO [#BUG] Remove multiple landmarks in a row
+
+* Motor driver
+** TODO Hard code - defined rotation times 
+    1. Gradual 90 degrees turns from straight to right and left
+    2. 0 radius turns
+
+*  Controller Logic
+** TODO Test logic
+** TODO Bug finding
