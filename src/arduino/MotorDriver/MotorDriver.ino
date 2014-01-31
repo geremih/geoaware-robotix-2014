@@ -92,22 +92,7 @@ void gradualLeft(){
 }
 
 
-void gradualUTurnRight(){
-  uint8_t i;
-  Serial.print("Gradual Uturn Right");
 
-  rmotor.run(FORWARD);
-  lmotor.run(REVERSE);
-  rmotor.setSpeed(255);
-  lmotor.setSpeed(150);  
-
-  delay(25);
-
-  lmotor.run(RELEASE);
-  rmotor.run(RELEASE);
-  
-  
-}
 
 
 void gradualRight(){
@@ -170,9 +155,7 @@ void serialEvent() {
     case 'a':
       goLeft();
       break;
-    case  'v':
-      gradualUTurnRight();
-      break;
+
       
     }
   }

@@ -5,13 +5,13 @@
 #define LANE_WIDTH 40
 //in micro seconds 
 #define MOVE_SLEEP_TIME 10000
-#define SERVO_SLEEP_TIME 10000
+#define SERVO_SLEEP_TIME 1000000
 #define PING_WAIT_TIME 10000
 #define GRAD_LEFT_TIME 1
 #define GRAD_RIGHT_TIME 1
 
 //no of iterations
-#define UTURN_AMOUNT 10
+#define UTURN_AMOUNT 157
 
 #define SERIALIDX_MIN  0
 #define SERIALIDX_MAX  10
@@ -27,7 +27,7 @@ bool Locomotor::streamFlag = false;
 Locomotor* Locomotor::single = NULL;
 
 char LOCO_ARDUINO[] = "/dev/ttyUSB0";
-char DIST_ARDUINO[] = "/dev/ttyACM0";
+char DIST_ARDUINO[] = "/dev/ttyACM1";
 
 std::ofstream Locomotor::loco_arduino_out;
 std::ofstream Locomotor::dist_arduino_out;
@@ -44,7 +44,10 @@ Locomotor::Locomotor(){
       Locomotor::dist_arduino_out.open(DIST_ARDUINO , std::ios_base::app);
       Locomotor::dist_arduino_in.open(DIST_ARDUINO , std::ios_base::app);
       streamFlag = true;
-  }
+    }
+
+  //arduino setup
+  sleep(5);
 }
 
 void Locomotor::writeToLoco( char c){
@@ -124,14 +127,7 @@ void Locomotor::gradualLeft(int amount){
   
 }
 
-void Locomotor::goUTurnRight(int amount){
-  for(int i =0 ; i< amount;i++){
-    cout<< "UTurn Right" << endl;
-    writeToLoco('v');
-  }
-  usleep(MOVE_SLEEP_TIME);
-  
-}
+
 
 void Locomotor::gradualRight(int amount){
   for(int i =0 ; i< amount;i++){
@@ -142,7 +138,7 @@ void Locomotor::gradualRight(int amount){
 }
 
 void Locomotor::goUTurn( int amount){
-  goUTurnRight( UTURN_AMOUNT);
+  goRight( UTURN_AMOUNT);
   sleep(2);
 
 }
@@ -161,12 +157,15 @@ int Locomotor::getDistance(){
   dist_arduino_out<<"p"<<endl;
   
   usleep(PING_WAIT_TIME);
-
+  std::ofstream file_out;
+  file_out.open("Dist" , std::ios_base::app);
   dist_arduino_in >>cm;	//will set the          error flag if not ready, will get a number from the Arduino stream if ready
+  file_out<< atoi( cm.c_str())<<endl;
   cout << atoi(cm.c_str()) << endl;	//Output it to the cout         stream
-  dist_arduino_in.clear();	//eof flag won't clear itself
 
-  return(0);
+  dist_arduino_in.clear();	//eof flag won't clear itself
+  file_out.close();
+  return( atoi(cm.c_str()));
 }
 
 void Locomotor::servoLeft(){
@@ -215,73 +214,49 @@ void Locomotor::facePassage(string passageDir){
   if (passageDir == "RIGHT"){
 
     while(vote < 3){
+      ofstream file_out;
+      file_out.open("Dir" , std::ios_base::app);
+      file_out<< currentPos <<endl;
+      file_out.close();
       curr_distance = getDistanceRight();
-      if(curr_distance> 2.5 *LANE_WIDTH)
+      if(curr_distance> 1.5 * LANE_WIDTH)
         vote++;
+      else if(vote>0)
+	vote--;
+      usleep(50000);
       goForward();
-     
     }
-    time_t init = time(NULL);
-
-    while(time(NULL) - init < GRAD_RIGHT_TIME){
-      gradualRight();
-    }
+    goBackward(20);
+    gradualRight(1200);
   }
   else  if (passageDir == "LEFT"){
 
     while(vote < 3){
       curr_distance = getDistanceLeft();
-      if(curr_distance> 2.5 *LANE_WIDTH)
+      if(curr_distance> 1.5 *LANE_WIDTH)
         vote++;
+      else if(vote>0)
+	vote--;
+      usleep(50000);      
       goForward();
-     
     }
-    time_t init = time(NULL);
+    goBackward(20);
+      gradualLeft(1200);
 
-    while(time(NULL) - init < GRAD_LEFT_TIME){
-      gradualLeft();
-    }
   }
 }
 
 void Locomotor::switchToKeyboard(){
-  
+
+
+  servoRight();
+
   int input;
   initscr();
   noecho();
   cbreak();
 
-  // Open the default camera
-  VideoCapture capture(0); 
-
-  // Get the properties from the camera
-  double width = capture.get(CV_CAP_PROP_FRAME_WIDTH);
-  double height = capture.get(CV_CAP_PROP_FRAME_HEIGHT);
- 
-  cout << "Camera properties\n";
-  cout << "width = " << width << endl <<"height = "<< height << endl;
- 
-  // Create a matrix to keep the retrieved frame
-  Mat frame;
- 
-  // Create a window to show the image
-  namedWindow ("Capture", CV_WINDOW_AUTOSIZE);
-
-
-  // Create the video writer
-  VideoWriter video("capture.avi",capture.get(CV_CAP_PROP_FOURCC),  capture.get(CV_CAP_PROP_FPS), cvSize((int)width,(int)height) );
-
-
   while(true){
-
-      capture >> frame;
- 
-      // Save frame to video
-      video << frame;
- 
-      // Show image
-      imshow("Capture", frame);
-
     
     input = getch();
     switch(input){
@@ -312,9 +287,7 @@ void Locomotor::switchToKeyboard(){
     case 'l':
       servoRight();
       break;
-    case 'v':
-      goUTurnRight();
-      break;
+
     case 'p':
       getDistance();
       break;
