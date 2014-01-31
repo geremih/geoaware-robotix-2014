@@ -15,10 +15,10 @@ using namespace cv;
 class CamController{
 
  public:
-  string laneFollowDir(vector<cv::Mat> frames); // return direction
-  void isPassage(vector<cv::Mat> frames , bool& pLeft,bool& pRight);
-  void processVideo(Mat image , string type , bool& pLeft , bool& pRight);
-  void detectTunnel(vector<Vec6f> segments , bool& pLeft , bool& pRight);
+  static string laneFollowDir(Mat frame); // return "LEFT" , "RIGHT" , "UNKOWN"
+  static void isPassage( Mat frame ,bool& pLeft,bool& pRight); 
+  static void processVideo(Mat image , string type , bool& pLeft , bool& pRight);
+  static void  detectTunnel(vector<Vec6f> segments , bool& pLeft , bool& pRight);
 };
 
 

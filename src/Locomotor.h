@@ -22,6 +22,8 @@ class Locomotor
   int getDistanceFront();
   int getDistanceLeft();
   int getDistanceRight();
+  string currentPos;
+  void facePassage(string passageDir);
   static Locomotor* getInstance();
   Locomotor();
   Locomotor(const Locomotor&);

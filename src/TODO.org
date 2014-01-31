@@ -6,7 +6,7 @@
 
 * Lane detection
 ** TODO Test code
-** TODO Remove horizontal lines and add code for only single side seen
+** DONE Remove horizontal lines and add code for only single side seen
 ** TODO Detect tunnel with intial part of lane not seen
 
 * Symbol Detection

@@ -1,6 +1,9 @@
 #include"Locomotor.h"
 #include "GeoAware.h"
 #include<stdlib.h>
+
+#define LANE_WIDTH 40
+#define MOVE_SLEEP_TIME 10000
 using namespace std;
 
 using namespace cv;
@@ -18,6 +21,7 @@ std::ifstream Locomotor::dist_arduino_in;
 Locomotor::Locomotor(){
   //Start Serial Communication
   cout<<"Constructing"<<endl;
+  currentPos= "NONE";
   if(!streamFlag){
     Locomotor::loco_arduino_out.open(LOCO_ARDUINO , std::ios_base::app);
     Locomotor::dist_arduino_out.open(DIST_ARDUINO , std::ios_base::app);
@@ -65,6 +69,7 @@ void Locomotor::goLeft(int amount){
     cout<< "Go Left" << endl;
     writeToLoco('a');
   }
+  usleep(MOVE_SLEEP_TIME);
 }
 
 void Locomotor::goRight(int amount){
@@ -79,6 +84,8 @@ void Locomotor::goForward(int amount){
     cout<< "Go Forward" << endl;
     writeToLoco('w');
   }
+
+  usleep(MOVE_SLEEP_TIME);
 }
 
 void Locomotor::goBackward(int amount){
@@ -86,6 +93,7 @@ void Locomotor::goBackward(int amount){
     cout<< "Go Backward" << endl;
     writeToLoco('s');
   }
+  usleep(MOVE_SLEEP_TIME);
 }
 
 
@@ -94,6 +102,9 @@ void Locomotor::gradualLeft(int amount){
     cout<< "Grad Left" << endl;
     writeToLoco('z');
   }
+  usleep(MOVE_SLEEP_TIME);
+ 
+  
 }
 
 void Locomotor::gradualRight(int amount){
@@ -101,6 +112,7 @@ void Locomotor::gradualRight(int amount){
     cout<< "Grad Right" << endl;
     writeToLoco('c');
   }
+  usleep(MOVE_SLEEP_TIME);
 }
 
 int Locomotor::getDistance(){
@@ -127,18 +139,21 @@ int Locomotor::getDistance(){
 }
 
 void Locomotor::servoLeft(){
-
-  writeToDist('a');
+  if( currentPos != "LEFT")
+    writeToDist('a');
+  currentPos = "LEFT";
 }
 
 void Locomotor::servoRight(){
-
-  writeToDist('d');
+  if( currentPos != "RIGHT")
+    writeToDist('d');
+  currentPos = "RIGHT";
 }
 
 void Locomotor::servoFront(){
-
-  writeToDist('w');
+  if( currentPos != "FRONT")
+    writeToDist('w');
+  currentPos = "FRONT";
 }
 
 int Locomotor::getDistanceFront(){
@@ -154,6 +169,34 @@ int Locomotor::getDistanceLeft(){
 int Locomotor::getDistanceRight(){
   servoRight();
   return getDistance();
+}
+
+void Locomotor::facePassage(string passageDir){
+
+  int distance , curr_distance;
+  int vote = 0;
+  if (passageDir == "RIGHT"){
+
+    while(vote < 3){
+      curr_distance = getDistanceRight();
+      if(curr_distance> 2.5 *LANE_WIDTH)
+        vote++;
+      goForward();
+     
+    }
+    time_t init = time(NULL);
+
+    while(time(NULL) - init < GRAD_RIGHT_TIME){
+      gradualRight();
+
+    }
+  }
+
+  
+  
+  
+
+
 }
 
 void Locomotor::switchToKeyboard(){

@@ -4,6 +4,9 @@
 
 #define TUNNEL_GAP 50
 #define LANE_ANGLE_THRESH 30
+#define LINE_RHO_THRESH 50
+#define LINE_ANGLE_THRESH 10
+
 
 using namespace std;
 using namespace cv;
@@ -14,12 +17,8 @@ float abs( float x , float y){
     return y-x;
   else
     return x-y;
-
 }
 
-
-#define LINE_RHO_THRESH 50
-#define LINE_ANGLE_THRESH 10
 vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
 
 
@@ -316,12 +315,12 @@ void CamController::detectTunnel(vector<Vec6f> segments , bool& pLeft , bool& pR
           if(distance > tunnelGap){
             cout<<"Tunnel detected";
             if( segments[j][5] < (PI/2)){
-              pLeft = true;
-              cout<<" on the left" <<endl;
+              pRight= true;
+              cout<<" on the right" <<endl;
             }
             else
-              pRight = true;
-            cout<<" on the right" <<endl;
+              pLeft = true;
+            cout<<" on the left" <<endl;
           }
         }
     }
@@ -463,51 +462,24 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
   }
 }
 
-void CamController::isPassage(vector<cv::Mat> frames , bool& pLeft,bool& pRight){
+void CamController::isPassage(Mat frame , bool& pLeft,bool& pRight){
 
   pLeft = pRight = false;
-  int nLeft , nRight;
-  nLeft = nRight = 0;
-  for(int i =0 ; i < frames.size() ; i++){
-    
-    processVideo(frames[i],"TUNNEL" , pLeft , pRight );
-    if(pLeft) nLeft++;
-    if(pRight) nRight++;
-    
-  }
+  processVideo(frame,"TUNNEL" , pLeft , pRight );
   //TODO : Better dependency of nDir and pDir
-
-  if( nLeft > frames.size()/2 +1)
-    pLeft = true;
-  else
-    pLeft = false;
-  
-  if( nRight > frames.size()/2 +1)
-    pRight = true;
-  else
-    pRight = false;
 
 
 }
 
-string CamController::laneFollowDir(vector<cv::Mat> frames){
+string CamController::laneFollowDir(Mat frame){
   bool pLeft , pRight;
   pLeft = pRight = false;
-  int nLeft , nRight;
-  nLeft = nRight = 0;
-  for(int i =0 ; i < frames.size() ; i++){
-    
-    processVideo(frames[i],"LANE" , pLeft , pRight );
-    if(pLeft) nLeft++;
-    if(pRight) nRight++;
-  }
-
-  //TODO: Make bools depend on the n's
+  processVideo(frame,"LANE" , pLeft , pRight );
   if(pLeft)
     return "LEFT";
   else if(pRight)
     return "RIGHT";
   else
-    return "UNKNOWN";
+    return "STRAIGHT";
 }
 
