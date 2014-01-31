@@ -5,6 +5,7 @@
 #include "Locomotor.h"
 #include "MapProcessor.h"
 #include "LiveSymbolDetector.h"
+#include "CamController.h"
 
 #define MAX_ATTEMPTS 5
 

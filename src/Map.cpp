@@ -16,6 +16,17 @@ Map::Map(const string path)
       cout << "Invalid input map! Exiting. " << endl;
       exit(EXIT_FAILURE);
     }
+
+  cv::Mat kernel = Mat::ones(Size(3, 3), CV_8U);
+  cv::Mat eroded = img_src.clone();
+  cv::erode(img_src,eroded,kernel);
+  cv::Mat dilated = eroded.clone();
+  cv::dilate(eroded,dilated,kernel);
+  // cv::imshow("src", img_src);
+  // cv::imshow("eroded", eroded);
+  // cv::imshow("dilated",dilated);
+  // cv::waitKey(0);
+  img_src = dilated;
   addBorders(0,0,0);
   img_waypoints = img_src.clone();
   img_landmarks = obtainLandmarksImg();

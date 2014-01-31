@@ -21,7 +21,7 @@ Controller::Controller(string path):
   m.displayMap();
   m.printLandmarks();
   locomotor = Locomotor::getInstance();
-  cam = CamController::getInstance();
+  //cam = CamController::getInstance();
 }
 
 void Controller::start()
@@ -39,7 +39,7 @@ bool Controller::processPassage(string passageDir)
   
   // tunnel dilemma sends newpath consistent with lastIndex
   // check params (pass by ref tunnelExitDir)
-  flag = mp.tunnelDilemma(passageDir,path,lastIndex,newpath,tunnelExitDir);
+  flag = mp.tunnelDilemma(passageDir,path,lastIndex,newpath, 0.5);
   
   if(flag == FOUND_TUNNEL_AND_TAKE && pathFound)
     {
@@ -52,7 +52,7 @@ bool Controller::processPassage(string passageDir)
     }
   else if(flag == FOUND_TUNNEL_DONT_TAKE && pathFound)
     {
-      move("FORWARD",AMT_TURN);
+      move("STRAIGHT",AMT_TURN);
     }
   else if(flag == NOT_FOUND_TUNNEL)
     {
@@ -73,9 +73,9 @@ bool Controller::processPassage(string passageDir)
 	}
 	      
       orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
-      
+      string turn_dir = MapProcessor::getDir(orientation,orientation_next);
       // if orientations match, take left at T-Junction
-      if(orientation_next == passageDir)
+      if(turn_dir == passageDir)
 	{
 	  locomotor->facePassage(passageDir);
 	  turned = true;
@@ -97,6 +97,8 @@ void Controller::mainLoop()
   bool pLeft = false;
   bool pRight = false;
   int distance_front; //cm
+  VideoCapture cap(0);
+  cv::Mat frame;
   
   while(true)
     {
@@ -106,9 +108,24 @@ void Controller::mainLoop()
 	followLane();
       else
 	move("STRAIGHT",AMT_LANE);
-      
-      cam->isPassage(pLeft,pRight);
 
+      int pL = 0, pR = 0;
+      for(int i = 0; i < 10; ++i)
+	{
+	  cap >> frame;
+	  CamController::isPassage(frame, pLeft, pRight);
+	  if(pLeft)
+	    ++pL;
+	  if(pRight)
+	    ++pR;
+	  cv::waitKey(33);
+	}
+
+      if(pL > 6)
+	pLeft = true;
+      if(pR > 6)
+	pRight = true;
+      
       // may cause infinite loop?
       if(pLeft)
 	turned = processPassage("LEFT");
@@ -157,7 +174,7 @@ void Controller::mainLoop()
 			    }
 			}
 		      pathFound = true;
-		      orientation = MapProcessor::getOrient(path[lastIndex],path[lastIndex+1]);			      
+		      lastIndex = 1;
 		    }
 		  else
 		    {
@@ -173,6 +190,7 @@ void Controller::mainLoop()
 		      else
 			{
 			  // mario panic :D
+			  cout << "Unexpected symbol : found " << shape << ", " << color << " |  expected " << path[lastIndex+1].shape << ", " << path[lastIndex+1].color << endl;
 			}
 		    }
 
@@ -181,6 +199,11 @@ void Controller::mainLoop()
 		{
 		  // reached end of corridor, but didn't detect any symbol!
 		  // just keep following the lane
+		  // and hope it was a mistake
+		  orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
+		  direction = MapProcessor::getDir(orientation,orientation_next);
+		  move(direction,AMT_TURN);
+		  ++lastIndex;
 		}
 	    }
 	}
@@ -199,9 +222,7 @@ void Controller::move(string dir, int amt)
     locomotor->goBackward(amt);
   else if(dir == "UTURN")
     locomotor->goUTurn(amt);
-
-  if(amt == AMT_TURN)
-    sleep(2);
+  
 }
 
 int Controller::detectSymbol(string& shape, string& color)
@@ -236,17 +257,29 @@ int Controller::detectSymbol(string& shape, string& color)
 
 void Controller::followLane()
 { 
-  std::vector<cv::Mat> frames(MAX_ATTEMPTS);
+  //std::vector<cv::Mat> frames(MAX_ATTEMPTS);
+  cv::Mat frame;
   string dir;
   VideoCapture cap(0);
   int i = 0;
-  while(i<MAX_ATTEMPTS)
+  int nL = 0, nR = 0, nS = 0;
+  while(i<10)
    {
-      cap >> frames[i++];
+     cap >> frame;
+     if(CamController::laneFollowDir(frame) == "LEFT")
+       ++nL;
+     else if(CamController::laneFollowDir(frame) == "RIGHT")
+       ++nR;
+     else if(CamController::laneFollowDir(frame) == "STRAIGHT")
+       ++nS;
       cv::waitKey(33);
     }
-  
-  dir = cam->laneFollowDir(frames);
+  if(nL > nR && nL > nS)
+    dir = "LEFT";
+  else if(nR > nL && nR > nS)
+    dir = "RIGHT";
+  else
+    dir = "STRAIGHT";
   
   move(dir, AMT_LANE);
 }

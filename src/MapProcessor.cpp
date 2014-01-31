@@ -188,7 +188,7 @@ string MapProcessor::getDir(string orientation_curr, string orientation_next)
       if(orientation_next == "NORTH")
         direction = "STRAIGHT";
       else if(orientation_next == "SOUTH")
-        direction = "U-TURN";
+        direction = "UTURN";
       else if(orientation_next == "EAST")
         direction = "RIGHT";
       else if(orientation_next == "WEST")
@@ -199,7 +199,7 @@ string MapProcessor::getDir(string orientation_curr, string orientation_next)
   else if(orientation_curr == "SOUTH")
     {
       if(orientation_next == "NORTH")
-        direction = "U-TURN";
+        direction = "UTURN";
       else if(orientation_next == "SOUTH")
         direction = "STRAIGHT";
       else if(orientation_next == "EAST")
@@ -218,7 +218,7 @@ string MapProcessor::getDir(string orientation_curr, string orientation_next)
       else if(orientation_next == "EAST")
         direction = "STRAIGHT";
       else if(orientation_next == "WEST")
-        direction = "U-TURN";
+        direction = "UTURN";
       else
         direction = "?";
     }
@@ -229,7 +229,7 @@ string MapProcessor::getDir(string orientation_curr, string orientation_next)
       else if(orientation_next == "SOUTH")
         direction = "LEFT";
       else if(orientation_next == "EAST")
-        direction = "U-TURN";
+        direction = "UTURN";
       else if(orientation_next == "WEST")
         direction = "STRAIGHT";
       else
