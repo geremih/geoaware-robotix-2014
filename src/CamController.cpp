@@ -445,12 +445,12 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
         swap( seg1 , seg2);
       }
     
-    if( segments[seg1][5] * 180/PI +segments[seg2][5] * 180/PI > 185 ){
+    if( segments[seg1][5] * 180/PI +segments[seg2][5] * 180/PI > 190 ){
       pLeft = true;
       pRight = false;
       cout<< "LEFT"<<endl;
     }
-    else if( segments[seg1][5] * 180/PI + segments[seg2][5] * 180/PI  < 175 ){
+    else if( segments[seg1][5] * 180/PI + segments[seg2][5] * 180/PI  < 170 ){
       pRight = true;
       pLeft = false;
       cout<<"RIGHT"<<endl;

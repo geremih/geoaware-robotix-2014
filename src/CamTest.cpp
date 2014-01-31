@@ -14,30 +14,33 @@ int main(int argc , char **argv){
   Mat frame;
   // if 2 successive frames detect same symbol, return it
   Locomotor * locomotor;
-  time_t init = time(NULL);
   locomotor = Locomotor::getInstance();
-
+  int i = 0;
   while(1){
     bool left ,right;
 
-    capture>>frame;
-    init = time(NULL);
+    for(int i=0;i<5;++i)
+      capture>>frame;
     
     cp.processVideo( frame , "TUNNEL" , left ,right);
-    
     cp.processVideo(frame , "LANE" , left , right);
 
-    if( left == true){
-      
-      locomotor->goLeft(5);
-    }
-    else if (right == true){
-      locomotor->goRight(5);
-    }
-    else{
-      locomotor->goForward(5);
-    }
-    waitKey(100);
+    if( left == true)
+      {
+	locomotor->goLeft(5);
+      }
+    
+    else if (right == true)
+      {
+	locomotor->goRight(5);
+      }
+    else
+      {
+	locomotor->goForward(5);
+      }
+    
+    imshow("test",frame);
+    waitKey(20);
   }  
 
   return 0;
