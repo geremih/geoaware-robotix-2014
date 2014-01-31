@@ -20,6 +20,8 @@
 ** TODO Hard code - defined rotation times 
     1. Gradual 90 degrees turns from straight to right and left
     2. 0 radius turns
+** TODO Automate finding the USB tty's
+
 
 *  Controller Logic
 ** TODO Test logic

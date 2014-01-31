@@ -12,6 +12,9 @@ locomotor: Locomotor.cpp Locotest.cpp
 soundCheck: SoundPlayer.cpp
 	g++ -g SoundCheck.cpp SoundPlayer.cpp -lSDL -lSDL_mixer
 
+camController: CamController.cpp CamTest.cpp
+	g++ -g -o CamController CamController.cpp CamTest.cpp  $(LIBS)
+
 
 clean:
 	rm GeoAware Locomotor 

@@ -19,18 +19,35 @@ float abs( float x , float y){
 
 }
 
+#define LINE_RHO_THRESH 50
+#define LINE_ANGLE_THRESH 10
 vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
 
+
+  
   vector<Vec2f> lines;
   bool exists = false;
-  
+
+  vector<Vec2f> hvlines;
+  cout<<"Crho ctheta are"<<endl;
   //Removing lines close to each other
   for(int i = 0; i < clines.size() ; i++){
+
     exists = false;
     float crho = clines[i][0], ctheta = clines[i][1];
+
+    cout<< crho << " " << ctheta * 180 / PI<<endl;
+
+    //remove nearly horizontal or vertical lines
+    if( ctheta * 180/PI < 10 || (ctheta * 180/PI < 100 && ctheta * 180/PI > 80) || (ctheta * 180/PI > 170) )
+      {
+        hvlines.push_back( Vec2f( crho , ctheta));
+        continue;
+
+      }
     for( int j = 0 ; j < lines.size() ; j++){
       float rho = lines[j][0], theta = lines[j][1];
-      if( abs(rho - crho) <= 10 && abs(theta - ctheta) <= .05){
+      if( abs(rho - crho) <= LINE_RHO_THRESH && abs(theta - ctheta)*180/PI <= LINE_ANGLE_THRESH){
         crho = (rho + crho) /2;
         ctheta = (theta + ctheta)/2;
         exists = true;
@@ -40,10 +57,45 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
       lines.push_back(Vec2f( crho , ctheta));
     }
   }
+
+  for( int j = 0 ; j < lines.size() ; j++){
+    float rho = lines[j][0], theta = lines[j][1];
+    cout<<j<<  " Rho " <<  rho << "Theta " << theta << endl;
+  }
+ 
   cout<<"There are total " <<  lines.size() << " lines"<<endl;
   imshow("Getting line segments on " , edgeIm);
+
+  int whitekernel = 1;
+  //remove hor and vert lines
+  for( size_t i = 0; i < hvlines.size(); i++ )
+    {
+      float rho = hvlines[i][0], theta = hvlines[i][1];
+      Point pt1, pt2;
+      double a = cos(theta), b = sin(theta);
+      double x0 = a*rho, y0 = b*rho;
+      pt1.x = cvRound(x0 + 1000*(-b)); //??
+      pt1.y = cvRound(y0 + 1000*(a)); //??
+      pt2.x = cvRound(x0 - 1000*(-b)); //??
+      pt2.y = cvRound(y0 - 1000*(a)); //??
+      LineIterator wit( edgeIm , pt1 , pt2 );
+      Point curr_pos;
+      for(int j = 0; j < wit.count; j++, ++wit)
+        {
+          curr_pos = wit.pos();
+          for (int xi = curr_pos.x  - whitekernel ; xi <= curr_pos.x + whitekernel ; xi++)
+            {
+              for (int yi = curr_pos.y  - whitekernel ; yi <= curr_pos.y + whitekernel ; yi++)
+                {
+                  if( xi < 0 || xi >= edgeIm.cols || yi < 0 || yi >= edgeIm.rows )
+                    continue;
+                  edgeIm.at<uchar>(yi , xi) = 255;
+                }
+            }
+        }
+    }
   //remove contours that are close by
-  int kernel = 5;
+  int kernel = 10;
   vector<Vec6f> segments;
   Point p1 , p2;
   Mat lineTest;
@@ -182,7 +234,7 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
   return finalsegments;
 }
 
-
+  
 void drawLineSegments(Mat& ime , vector<Vec6f> segments ,  cv::Scalar color=cv::Scalar(255)){
 
   // Draw the lines
@@ -283,28 +335,45 @@ float slope( Point p1 , Point p2){
   return   atan((p2.y - p1.y)/(p2.x - p1.x)) * 180 / PI;
 }
 
+int erosion_elem = 0;
+int erosion_size = 0;
+int dilation_elem = 0;
+int dilation_size = 0;
+int const max_elem = 2;
+int const max_kernel_size = 21;
+
+
 void LaneDetect(){
 
   if (image.empty())
     return;
+
   Mat gray;
   //remove colors
   removeSymbols(image);
-  cvtColor(image,gray,CV_RGB2GRAY);
+  cvtColor(image,image,CV_RGB2GRAY);
   Rect roi(0,image.rows/3,image.cols-1,image.rows - image.rows/3);// set the ROI for the image
   //set ROI dynamically
   Mat imgROI = image(roi);
   //Mat imgROI = image;
   // Display the image
+    
+  //blur( image , image, Size(10,1) );
+  imshow("Original image" , image);
+  
+  //adaptiveThreshold(imgROI,imgROI,255, ADAPTIVE_THRESH_GAUSSIAN_C,THRESH_BINARY, 29  , -1);//, double C)¶
+  
+  imshow("thresholded image" , imgROI);
   imshow("Original Image",imgROI );
   moveWindow("Original Image" , 400 , 0);
+  
   // Canny algorithm
   Mat contours;
   Canny(imgROI,contours,cannyLower,cannyHigher);
   Mat contoursInv;
   threshold(contours,contoursInv,128,255,THRESH_BINARY_INV);
   imshow("Canny",contoursInv);
-
+  
 
   
   int seg1, seg2;
@@ -366,20 +435,34 @@ void LaneDetect(){
   if(foundLane){
     if( segments[seg1][5] > segments[seg2][5])
       {
-        int temp;
-        temp = seg1;
-        seg1 = seg2;
-        seg2 = temp;
+        swap(seg1 , seg2);
       }
-
-    if( (180- segments[seg1][5] * 180/PI) < segments[seg2][5] * 180/PI)
+    if( (180- segments[seg1][5] * 180/PI) - segments[seg2][5] * 180/PI < -20 )
       cout<<"LEFT"<<endl;
-    else
+    else if( (180- segments[seg1][5] * 180/PI) - segments[seg2][5] * 180/PI >  20 )
       cout<< "RIGHT"<<endl;
-
+    else
+      cout<< "STRAIGHT" <<endl;
   }
   else{
-    cout<<"Cant decide"<<endl;
+    //looking at single lines figure out
+    double max_length = 0;
+    double max_size;
+    double max_l_angle;
+    for ( int i =0 ; i< segments.size(); i++)
+      {
+        double length =  cv::norm(cv::Mat(Point(segments[i][0] , segments[i][1])),cv::Mat(Point(segments[i][2] , segments[i][3])));
+        if(length > max_length){
+          max_length = length;
+          max_l_angle = segments[i][5];
+          }
+        
+      }
+
+    if(max_l_angle > 90 )
+      cout<<"LEFT"<<endl;
+    else
+      cout<<"RIGHT"<<endl;
   }
   
   //find seg
