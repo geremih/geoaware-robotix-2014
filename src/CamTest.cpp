@@ -5,8 +5,8 @@ int main(int argc , char **argv){
 
   CamController cp;
 
-  char * argp = argv[1];
-  VideoCapture capture = VideoCapture(argp);
+  string argp = argv[1];
+  VideoCapture capture(atoi(argp.c_str()));
 
   Mat frame;
   // if 2 successive frames detect same symbol, return it

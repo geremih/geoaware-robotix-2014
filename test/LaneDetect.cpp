@@ -480,7 +480,7 @@ int main(int argc, char* argv[])
 
   argp = argv[1];
   capture = VideoCapture(argp);
-
+  
   if (!capture.isOpened()) //if this fails, try to open as a video camera, through the use of an integer param
     {capture.open(atoi(argp.c_str()));}
   double dWidth = capture.get(CV_CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
