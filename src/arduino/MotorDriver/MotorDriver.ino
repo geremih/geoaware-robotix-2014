@@ -75,7 +75,7 @@ void goLeft(){
 
 
 void gradualLeft(){
-    uint8_t i;
+  uint8_t i;
   Serial.print("Gradual Left");
 
   rmotor.run(FORWARD);
@@ -91,8 +91,27 @@ void gradualLeft(){
   
 }
 
+
+void gradualUTurnRight(){
+  uint8_t i;
+  Serial.print("Gradual Uturn Right");
+
+  rmotor.run(FORWARD);
+  lmotor.run(REVERSE);
+  rmotor.setSpeed(255);
+  lmotor.setSpeed(150);  
+
+  delay(25);
+
+  lmotor.run(RELEASE);
+  rmotor.run(RELEASE);
+  
+  
+}
+
+
 void gradualRight(){
-    uint8_t i;
+  uint8_t i;
   Serial.print("Gradual Right");
 
   rmotor.run(FORWARD);
@@ -105,8 +124,9 @@ void gradualRight(){
   lmotor.run(RELEASE);
   rmotor.run(RELEASE);
   
-  
 }
+
+
 
 void goRight(){
 
@@ -141,15 +161,19 @@ void serialEvent() {
     case 'd':
       goRight();
       break;
-      case 'z':
+    case 'z':
       gradualLeft();
       break;
-      case 'c':
+    case 'c':
       gradualRight();
       break;
     case 'a':
       goLeft();
       break;
+    case  'v':
+      gradualUTurnRight();
+      break;
+      
     }
   }
 }
