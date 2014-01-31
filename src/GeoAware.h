@@ -26,7 +26,4 @@
 #define EPSILON 10
 #define EPSILON_TJ 25
 
-#define LOCO_ARDUINO "/dev/ttyUSB0"
-#define DIST_ARDUINO "/dev/ttyACM0"
-
 #endif

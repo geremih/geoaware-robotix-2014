@@ -4,6 +4,10 @@
 #include <fstream>
 #include<iostream>
 #include<curses.h>
+
+//#define LOCO_ARDUINO "/dev/ttyUSB0"
+//#define DIST_ARDUINO "/dev/ttyACM0"
+
 using namespace std;
 
 class Locomotor

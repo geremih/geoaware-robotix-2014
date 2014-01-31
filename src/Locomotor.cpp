@@ -4,14 +4,18 @@
 
 #define LANE_WIDTH 40
 #define MOVE_SLEEP_TIME 10000
-using namespace std;
 
+using namespace std;
 using namespace cv;
+
 bool Locomotor::instanceFlag = false;
 
 bool Locomotor::streamFlag = false;
 
 Locomotor* Locomotor::single = NULL;
+
+char LOCO_ARDUINO[] = "/dev/ttyUSB0";
+char DIST_ARDUINO[] = "/dev/ttyACM0";
 
 std::ofstream Locomotor::loco_arduino_out;
 std::ofstream Locomotor::dist_arduino_out;
@@ -272,6 +276,15 @@ void Locomotor::switchToKeyboard(){
       break;
     case 'x':
       return;
+    case 'g':
+      facePassage("LEFT");
+      break;
+    case 'h':
+      facePassage("RIGHT");
+      break;
+    case 'u':
+      goUTurn(UTURN_AMT);
+      break;
       
     }
   }
