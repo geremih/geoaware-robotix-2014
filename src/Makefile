@@ -15,8 +15,8 @@ locomotor: Locomotor.cpp Locotest.cpp
 soundCheck: SoundPlayer.cpp
 	g++ -g SoundCheck.cpp SoundPlayer.cpp -lSDL -lSDL_mixer
 
-camController: CamController.cpp CamTest.cpp
-	g++ -g -o CamController CamController.cpp CamTest.cpp  $(LIBS)
+camController: CamController.cpp CamTest.cpp Locomotor.cpp
+	g++ -g -o CamController CamController.cpp Locomotor.cpp CamTest.cpp  $(LIBS) -lncurses
 
 
 clean:

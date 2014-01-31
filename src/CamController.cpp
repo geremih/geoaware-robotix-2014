@@ -11,6 +11,7 @@
 using namespace std;
 using namespace cv;
 
+#define IMSHOW 1
 
 float abs( float x , float y){
   if((x-y) < 0)
@@ -62,7 +63,10 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
   }
  
   cout<<"There are total " <<  lines.size() << " lines"<<endl;
+
+  #ifdef IMSHOW
   imshow("Getting line segments on " , edgeIm);
+  #endif
 
   int whitekernel = 1;
   //remove hor and vert lines
@@ -297,7 +301,9 @@ void removeSymbols(Mat& img){
       
     }
   
+  #ifdef IMSHOW
   imshow("Removed symbols from frames", img);
+  #endif
 }
 
 void CamController::detectTunnel(vector<Vec6f> segments , bool& pLeft , bool& pRight){
@@ -348,7 +354,9 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
   Rect roi(0,image.rows/3,image.cols-1,image.rows - image.rows/3);// set the ROI for the image
   Mat imgROI = gray(roi);
 
+  #ifdef IMSHOW
   imshow("Original Image",imgROI );
+  #endif
   
   // Canny algorithm
   Mat contours;
@@ -356,7 +364,9 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
   Mat contoursInv;
   threshold(contours,contoursInv,128,255,THRESH_BINARY_INV);
   
+  #ifdef IMSHOW
   imshow("Canny",contoursInv);
+  #endif
   
   int seg1, seg2;
   bool foundLane  = false;
@@ -390,7 +400,9 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
       ++it;
     }
     // Display the detected line image
+    #ifdef IMSHOW
     imshow("Detected Lines with Hough",result);
+    #endif
       
     segments  =getLineSegments( contoursInv, lines) ;
     drawLineSegments(contoursInv ,segments, Scalar(0));
@@ -422,7 +434,9 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
     }
   }
   cout<<"Using hough vote " << houghVote<<endl;
+  #ifdef IMSHOW
   imshow("Personal algo", contoursInv);
+  #endif
 
   //seg1 is to the left of seg2
   if(segments.size() > 0 && foundLane){
@@ -431,12 +445,12 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
         swap( seg1 , seg2);
       }
     
-    if( segments[seg1][5] * 180/PI +segments[seg2][5] * 180/PI > 190 ){
+    if( segments[seg1][5] * 180/PI +segments[seg2][5] * 180/PI > 185 ){
       pLeft = true;
       pRight = false;
       cout<< "LEFT"<<endl;
     }
-    else if( segments[seg1][5] * 180/PI + segments[seg2][5] * 180/PI  < 170 ){
+    else if( segments[seg1][5] * 180/PI + segments[seg2][5] * 180/PI  < 175 ){
       pRight = true;
       pLeft = false;
       cout<<"RIGHT"<<endl;
