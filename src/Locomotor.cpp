@@ -13,7 +13,8 @@
 //no of iterations
 #define UTURN_AMOUNT 10
 
-using namespace std;
+#define SERIALIDX_MIN  0
+#define SERIALIDX_MAX  10
 
 
 using namespace std;
@@ -37,11 +38,12 @@ Locomotor::Locomotor(){
   //Start Serial Communication
   cout<<"Constructing"<<endl;
   currentPos= "NONE";
-  if(!streamFlag){
-    Locomotor::loco_arduino_out.open(LOCO_ARDUINO , std::ios_base::app);
-    Locomotor::dist_arduino_out.open(DIST_ARDUINO , std::ios_base::app);
-    Locomotor::dist_arduino_in.open(DIST_ARDUINO , std::ios_base::app);
-    streamFlag = true;
+  if(!streamFlag)
+    {    
+      Locomotor::loco_arduino_out.open(LOCO_ARDUINO , std::ios_base::app);
+      Locomotor::dist_arduino_out.open(DIST_ARDUINO , std::ios_base::app);
+      Locomotor::dist_arduino_in.open(DIST_ARDUINO , std::ios_base::app);
+      streamFlag = true;
   }
 }
 
@@ -325,7 +327,7 @@ void Locomotor::switchToKeyboard(){
       facePassage("RIGHT");
       break;
     case 'u':
-      goUTurn(UTURN_AMT);
+      goUTurn(UTURN_AMOUNT);
       break;
       
     }

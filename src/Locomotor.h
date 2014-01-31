@@ -16,11 +16,12 @@ class Locomotor
   static std::ofstream loco_arduino_out;
   static std::ofstream dist_arduino_out;
   static std::ifstream dist_arduino_in;
+  void goUTurnRight(int amount = 1);
   void goLeft(int amount = 1);
   void goRight(int amount =1 );
   void goForward(int amount = 1);
   void goBackward(int amount = 1);
-  void goUTurn( int amount=1){
+  void goUTurn( int amount=1);
   void gradualLeft(int amount = 1);
   void gradualRight(int amount = 1);
   void switchToKeyboard();
