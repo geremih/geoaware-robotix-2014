@@ -3,7 +3,18 @@
 #include<stdlib.h>
 
 #define LANE_WIDTH 40
+//in micro seconds 
 #define MOVE_SLEEP_TIME 10000
+#define SERVO_SLEEP_TIME 10000
+#define PING_WAIT_TIME 10000
+#define GRAD_LEFT_TIME 1
+#define GRAD_RIGHT_TIME 1
+
+//no of iterations
+#define UTURN_AMOUNT 10
+
+using namespace std;
+
 
 using namespace std;
 using namespace cv;
@@ -107,7 +118,16 @@ void Locomotor::gradualLeft(int amount){
     writeToLoco('z');
   }
   usleep(MOVE_SLEEP_TIME);
- 
+
+  
+}
+
+void Locomotor::goUTurnRight(int amount){
+  for(int i =0 ; i< amount;i++){
+    cout<< "UTurn Right" << endl;
+    writeToLoco('v');
+  }
+  usleep(MOVE_SLEEP_TIME);
   
 }
 
@@ -119,6 +139,11 @@ void Locomotor::gradualRight(int amount){
   usleep(MOVE_SLEEP_TIME);
 }
 
+void Locomotor::goUTurn( int amount){
+  goUTurnRight( UTURN_AMOUNT);
+  sleep(2);
+
+}
 int Locomotor::getDistance(){
 
   /*
@@ -133,7 +158,7 @@ int Locomotor::getDistance(){
   dist_arduino_in.clear();	//eof flag won't clear itself
   dist_arduino_out<<"p"<<endl;
   
-  while(time(NULL)-Time < 1){}	//Wait one seconds for the Arduino  to start up
+  usleep(PING_WAIT_TIME);
 
   dist_arduino_in >>cm;	//will set the          error flag if not ready, will get a number from the Arduino stream if ready
   cout << atoi(cm.c_str()) << endl;	//Output it to the cout         stream
@@ -143,20 +168,26 @@ int Locomotor::getDistance(){
 }
 
 void Locomotor::servoLeft(){
-  if( currentPos != "LEFT")
+  if( currentPos != "LEFT"){
     writeToDist('a');
+    usleep(SERVO_SLEEP_TIME);
+  }
   currentPos = "LEFT";
 }
 
 void Locomotor::servoRight(){
-  if( currentPos != "RIGHT")
+  if( currentPos != "RIGHT"){
     writeToDist('d');
+    usleep(SERVO_SLEEP_TIME);
+    }
   currentPos = "RIGHT";
 }
 
 void Locomotor::servoFront(){
-  if( currentPos != "FRONT")
+  if( currentPos != "FRONT"){
     writeToDist('w');
+    usleep(SERVO_SLEEP_TIME);
+  }
   currentPos = "FRONT";
 }
 
@@ -192,15 +223,23 @@ void Locomotor::facePassage(string passageDir){
 
     while(time(NULL) - init < GRAD_RIGHT_TIME){
       gradualRight();
-
     }
   }
+  else  if (passageDir == "LEFT"){
 
-  
-  
-  
+    while(vote < 3){
+      curr_distance = getDistanceLeft();
+      if(curr_distance> 2.5 *LANE_WIDTH)
+        vote++;
+      goForward();
+     
+    }
+    time_t init = time(NULL);
 
-
+    while(time(NULL) - init < GRAD_LEFT_TIME){
+      gradualLeft();
+    }
+  }
 }
 
 void Locomotor::switchToKeyboard(){
@@ -270,6 +309,9 @@ void Locomotor::switchToKeyboard(){
       break;
     case 'l':
       servoRight();
+      break;
+    case 'v':
+      goUTurnRight();
       break;
     case 'p':
       getDistance();
