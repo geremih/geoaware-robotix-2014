@@ -109,7 +109,7 @@ void Controller::turnCorner(string passageDir){
         vote++;
       else if(vote>0)
         vote--;
-      usleep(50000);
+      //usleep(50000);
       followLane(1 , blank , true);
       moveBot("FORWARD" ,1 );
     }
@@ -135,7 +135,7 @@ void Controller::turnCorner(string passageDir){
         vote++;
       else if(vote>0)
         vote--;
-      usleep(50000);
+      //usleep(50000);
       followLane(1 , blank , true);
       moveBot("FORWARD" ,1 );
     }
@@ -151,7 +151,7 @@ void Controller::turnCorner(string passageDir){
       }
       if(foundCount > 3)
         break;
-      }
+    }
   }
 
 
@@ -170,13 +170,32 @@ void Controller::facePassage(string passageDir){
         vote++;
       else if(vote>0)
         vote--;
-      usleep(50000);
+      //usleep(50000);
       bool blank;
       followLane(1 , blank , true);
       moveBot("FORWARD" ,1 );
     }
+
+
+    
     moveBot("BACKWARD" ,15 );
-    locomotor->gradualRight(300);
+    locomotor->gradualRight(150);
+    //Originial
+    //locomotor->gradualRight(300);
+    //New
+    int foundCount = 0;
+    bool foundLane = false;
+    for(int k =0 ; k< 25; k++){
+      locomotor->gradualRight();
+      followLane(1 , foundLane , false);
+      if(foundLane){
+        foundCount++;
+      }
+      if(foundCount > 3)
+        break;
+    }
+
+    
   }
   else  if (passageDir == "LEFT"){
 
@@ -186,13 +205,30 @@ void Controller::facePassage(string passageDir){
         vote++;
       else if(vote>0)
         vote--;
-      usleep(50000);
+      //usleep(50000);
       bool blank;
       followLane(1 , blank ,true);
       moveBot("FORWARD" ,1 );
     }
+
     moveBot("BACKWARD" ,15 );
-    locomotor->gradualLeft(300);
+    locomotor->gradualLeft(150);
+    //Originial
+    //locomotor->gradualLeft(300);
+    //New
+    int foundCount = 0;
+    bool foundLane = false;
+    for(int k =0 ; k< 25; k++){
+      locomotor->gradualLeft();
+      followLane(1 , foundLane , false);
+      if(foundLane){
+        foundCount++;
+      }
+      if(foundCount > 3)
+        break;
+    }
+    
+
   }
   cout << "face passage done" << endl;
 }
