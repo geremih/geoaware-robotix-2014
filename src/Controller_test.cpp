@@ -178,7 +178,7 @@ void Controller::mainLoop()
   bool turned;
   string passageDir;
   string orientation_next, direction;
-  //string shape, color;
+  string shape, color;
   bool pLeft = false;
   bool pRight = false;
   int distance_front; //cm
@@ -190,6 +190,7 @@ void Controller::mainLoop()
     {
       distance_front = locomotor->getDistanceFront();
       cout << "DISTANCE_FRONT : " << distance_front << endl;
+      cout << "current orientation : " << orientation << endl;
       if(distance_front > LANE_FOLLOW_MIN)
 	{
 	  cout << "\t\tSTILL ROOM, FOLLOWING LANE" << endl;
@@ -198,6 +199,7 @@ void Controller::mainLoop()
       
       if(distance_front < LANE_FOLLOW_MIN && i++ > 2)
 	{
+	  i=0;
 	  // reached end of corridor
 	  // Cases :
 	  // 1. end of tunnel
@@ -207,10 +209,49 @@ void Controller::mainLoop()
 
 	  // reached a corner
 	  cout << "\t\treached end, turning now" << endl;
-	  turnCorner("LEFT");
-	  i = 0;
+	  if(lastIndex == path.size() -2)
+	    {
+	      cout << "DONE" << endl;
+	      exit(1);
+	    }
+	  flag = detectSymbol(shape,color);
+	  if(flag == FOUND_SYMBOL)
+	    {
+	      if(shape == path[lastIndex+1].shape && color == path[lastIndex+1].color)
+		{
+		  // turn in reqd dir and upd orientation
+		  orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
+		  direction = MapProcessor::getDir(orientation,orientation_next);
+		  cout << "found " << shape << ", " << color << " on the " << direction << endl;
+		  facePassage(direction);
+		  orientation = orientation_next;
+		  lastIndex++;
+		}
+	      else
+		{
+		  cout << "Unexpected symbol : found " << shape << ", " << color << " |  expected " << path[lastIndex+1].shape << ", " << path[lastIndex+1].color << endl;
+		  orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
+		  direction = MapProcessor::getDir(orientation,orientation_next);
+		  cout << "facing passage on the " << direction << endl;
+		  facePassage(direction);
+		  cout << "face passage done" <<endl;
+		  orientation = orientation_next;
+		  lastIndex++;
+		}
+	    }
+	  else
+	    {
+	      cout << "didnt detect any symbol" << endl;
+	      orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
+	      direction = MapProcessor::getDir(orientation,orientation_next);
+	      cout << "facing passage on the " << direction << endl;
+	      facePassage(direction);
+	      cout << "face passage done" <<endl;
+	      orientation = orientation_next;
+	      lastIndex++;
+	    }
+	  continue;
 	}
-      
       cout << "lastIndex = " << lastIndex << "path.size : " << path.size() << endl;
       if(lastIndex + 2 < path.size() && path[lastIndex+1].shape == "TJ")
 	{
@@ -219,7 +260,7 @@ void Controller::mainLoop()
 	  cout << "orientation = " << orientation << " o_next = " << orientation_next << endl;
 	  cout << "anticipating a TJ on the " << direction << endl;
 	  facePassage(direction);
-	  sleep(5);
+	  orientation = orientation_next;
 	  ++lastIndex;
 	}
     }

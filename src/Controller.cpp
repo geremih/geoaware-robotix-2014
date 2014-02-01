@@ -107,7 +107,7 @@ void Controller::mainLoop()
       if(distance_front > LANE_FOLLOW_MIN)
 	followLane();
       else
-	move("STRAIGHT",AMT_LANE);
+	moveBot("STRAIGHT",AMT_LANE);
 
       int pL = 0, pR = 0;
       for(int i = 0; i < 10; ++i)
