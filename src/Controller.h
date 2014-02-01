@@ -42,12 +42,14 @@ class Controller
   void facePassage(string passageDir);
   void turnCorner(string passageDir);
  private:
+
+  int no_lane_tries;
   void mainLoop();
   void moveBot(string dir, int amt);
   bool processPassage(string passageDir);
   int detectSymbolController(string& shape, string& color , Point& centroid);
   void selectPath();
-  void followLane(int amount = AMT_LANE) ;
+  void followLane(int amount , bool& foundLane , bool pmove ) ;
   static VideoCapture cap;
   static bool instanceFlag;
   static Controller* single;

@@ -4,7 +4,7 @@ bool Controller::instanceFlag = false;
 
 Controller* Controller::single = NULL;
 
-VideoCapture  Controller::cap(0);
+VideoCapture  Controller::cap(1);
 
 Controller* Controller::getInstance(string path , string ACM , string USB)
 {
@@ -20,6 +20,7 @@ Controller* Controller::getInstance(string path , string ACM , string USB)
 Controller::Controller(string mappath, string ACM , string USB):
   lastIndex(0), tunnelMode(false), orientation("?"), pathFound(false), m(mappath), mp(m), symbolDetector()
 {
+  no_lane_tries = 0;
   path = mp.paths[0];
   pathFound = true;
   orientation = MapProcessor::getOrient(path[0],path[1]);
@@ -59,28 +60,28 @@ bool Controller::processPassage(string passageDir)
     {
       // found a T-Junction
       if(pathFound == false)
-	{
-	  // try to select the path we are on and update orientation
-	  for(int i=0;i<mp.paths.size();++i)
-	    {
-	      if(mp.paths[i].size() > 1 && mp.paths[i][1].shape == "TJ") // also check for the reqd direction here, update that
-		{
-		  path = mp.paths[i];
-		  orientation = MapProcessor::getOrient(path[lastIndex],path[lastIndex+1]);
-		  break;
-		}
-	    }
-	  pathFound = true;
-	}
+        {
+          // try to select the path we are on and update orientation
+          for(int i=0;i<mp.paths.size();++i)
+            {
+              if(mp.paths[i].size() > 1 && mp.paths[i][1].shape == "TJ") // also check for the reqd direction here, update that
+                {
+                  path = mp.paths[i];
+                  orientation = MapProcessor::getOrient(path[lastIndex],path[lastIndex+1]);
+                  break;
+                }
+            }
+          pathFound = true;
+        }
 	      
       orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
       string turn_dir = MapProcessor::getDir(orientation,orientation_next);
       // if orientations match, take left at T-Junction
       if(turn_dir == passageDir)
-	{
-	  facePassage(passageDir);
-	  turned = true;
-	}
+        {
+          facePassage(passageDir);
+          turned = true;
+        }
       ++lastIndex;
     }
   return turned;
@@ -91,6 +92,7 @@ bool Controller::processPassage(string passageDir)
 
 void Controller::turnCorner(string passageDir){
 
+  bool blank;
   int distance , curr_distance;
   int vote = 0;
   if (passageDir == "RIGHT"){
@@ -101,12 +103,23 @@ void Controller::turnCorner(string passageDir){
         vote++;
       else if(vote>0)
         vote--;
-      usleep(50000);
-      followLane(1);
+      //usleep(50000);
+      followLane(1 , blank , true);
       moveBot("FORWARD" ,1 );
     }
     moveBot("BACKWARD" ,15 );
-    locomotor->goRight(25);
+    int foundCount = 0;
+    bool foundLane = false;
+    for(int k =0 ; k< 25; k++){
+      locomotor->goRight();
+      followLane(1 , foundLane , false);
+      if(foundLane){
+        foundCount++;
+      }
+      if(foundCount > 3)
+        break;
+    }
+
   }
   else  if (passageDir == "LEFT"){
 
@@ -116,12 +129,23 @@ void Controller::turnCorner(string passageDir){
         vote++;
       else if(vote>0)
         vote--;
-      usleep(50000);
-      followLane(1);
+      //usleep(50000);
+      followLane(1 , blank , true);
       moveBot("FORWARD" ,1 );
     }
+
+    int foundCount = 0;
     moveBot("BACKWARD" ,15 );
-    locomotor->goLeft(25);
+    bool foundLane = false;
+    for(int k =0 ; k< 25; k++){
+      locomotor->goLeft();
+      followLane(1 , foundLane , false);
+      if(foundLane){
+        foundCount++;
+      }
+      if(foundCount > 3)
+        break;
+    }
   }
 
 
@@ -140,12 +164,32 @@ void Controller::facePassage(string passageDir){
         vote++;
       else if(vote>0)
         vote--;
-      usleep(50000);
-      followLane(1);
+      //usleep(50000);
+      bool blank;
+      followLane(1 , blank , true);
       moveBot("FORWARD" ,1 );
     }
+
+
+    
     moveBot("BACKWARD" ,15 );
-    locomotor->gradualRight(300);
+    locomotor->gradualRight(150);
+    //Originial
+    //locomotor->gradualRight(300);
+    //New
+    int foundCount = 0;
+    bool foundLane = false;
+    for(int k =0 ; k< 25; k++){
+      locomotor->gradualRight();
+      followLane(1 , foundLane , false);
+      if(foundLane){
+        foundCount++;
+      }
+      if(foundCount > 3)
+        break;
+    }
+
+    
   }
   else  if (passageDir == "LEFT"){
 
@@ -155,12 +199,30 @@ void Controller::facePassage(string passageDir){
         vote++;
       else if(vote>0)
         vote--;
-      usleep(50000);
-      followLane(1);
+      //usleep(50000);
+      bool blank;
+      followLane(1 , blank ,true);
       moveBot("FORWARD" ,1 );
     }
+
     moveBot("BACKWARD" ,15 );
-    locomotor->gradualLeft(300);
+    locomotor->gradualLeft(150);
+    //Originial
+    //locomotor->gradualLeft(300);
+    //New
+    int foundCount = 0;
+    bool foundLane = false;
+    for(int k =0 ; k< 25; k++){
+      locomotor->gradualLeft();
+      followLane(1 , foundLane , false);
+      if(foundLane){
+        foundCount++;
+      }
+      if(foundCount > 3)
+        break;
+    }
+    
+
   }
   cout << "face passage done" << endl;
 }
@@ -189,72 +251,84 @@ void Controller::mainLoop()
       Point centroid;
       flag = detectSymbolController(shape,color ,centroid);
       if(distance_front < LANE_FOLLOW_MIN && i++ > 2)
-	{
-	  i=0;
-	  // reached a corner
-	  cout << "\t\treached end, turning now" << endl;
-	  if(lastIndex == path.size() -2)
-	    {
-	      cout << "DONE" << endl;
-	      exit(1);
-	    }
-	  if(flag == FOUND_SYMBOL)
-	    {
-	      if(shape == path[lastIndex+1].shape && color == path[lastIndex+1].color)
-		{
-		  // turn in reqd dir and upd orientation
-		  orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
-		  direction = MapProcessor::getDir(orientation,orientation_next);
-		  cout << "found " << shape << ", " << color << " on the " << direction << endl;
-		  facePassage(direction);
-		  orientation = orientation_next;
-		  lastIndex++;
-		}
-	      else
-		{
-		  cout << "Unexpected symbol : found " << shape << ", " << color << " |  expected " << path[lastIndex+1].shape << ", " << path[lastIndex+1].color << endl;
-		  orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
-		  direction = MapProcessor::getDir(orientation,orientation_next);
-		  cout << "facing passage on the " << direction << endl;
-		  facePassage(direction);
-		  cout << "face passage done" <<endl;
-		  orientation = orientation_next;
-		  lastIndex++;
-		}
-	    }
-	  else
-	    {
-	      cout << "didnt detect any symbol" << endl;
-	      orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
-	      direction = MapProcessor::getDir(orientation,orientation_next);
-	      cout << "facing passage on the " << direction << endl;
-	      facePassage(direction);
-	      cout << "face passage done" <<endl;
-	      orientation = orientation_next;
-	      lastIndex++;
-	    }
-	  continue;
-	}
+
+        {
+          i=0;
+          // reached end of corridor
+          // Cases :
+          // 1. end of tunnel
+          // 2. corner
+          // in case of a T-Junction we would have already turned to face it above
+	  
+
+          // reached a corner
+          cout << "\t\treached end, turning now" << endl;
+          if(lastIndex == path.size() -2)
+            {
+              cout << "DONE" << endl;
+              exit(1);
+            }
+
+          if(flag == FOUND_SYMBOL)
+            {
+              if(shape == path[lastIndex+1].shape && color == path[lastIndex+1].color)
+                {
+                  // turn in reqd dir and upd orientation
+                  orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
+                  direction = MapProcessor::getDir(orientation,orientation_next);
+                  cout << "found " << shape << ", " << color << " on the " << direction << endl;
+                  facePassage(direction);
+                  orientation = orientation_next;
+                  lastIndex++;
+                }
+              else
+                {
+                  cout << "Unexpected symbol : found " << shape << ", " << color << " |  expected " << path[lastIndex+1].shape << ", " << path[lastIndex+1].color << endl;
+                  orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
+                  direction = MapProcessor::getDir(orientation,orientation_next);
+                  cout << "facing passage on the " << direction << endl;
+                  facePassage(direction);
+                  cout << "face passage done" <<endl;
+                  orientation = orientation_next;
+                  lastIndex++;
+                }
+            }
+          else
+            {
+              cout << "didnt detect any symbol" << endl;
+              orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
+              direction = MapProcessor::getDir(orientation,orientation_next);
+              cout << "facing passage on the " << direction << endl;
+              facePassage(direction);
+              cout << "face passage done" <<endl;
+              orientation = orientation_next;
+              lastIndex++;
+            }
+          continue;
+        }
+
 
       
       cout << "lastIndex = " << lastIndex << "path.size : " << path.size() << endl;
       if(lastIndex + 2 < path.size() && path[lastIndex+1].shape == "TJ")
-	{
-	  orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
-	  direction = MapProcessor::getDir(orientation,orientation_next);
-	  cout << "orientation = " << orientation << " o_next = " << orientation_next << endl;
-	  cout << "anticipating a TJ on the " << direction << endl;
-	  facePassage(direction);
-	  orientation = orientation_next;
-	  ++lastIndex;
-	}
+        {
+          orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
+          direction = MapProcessor::getDir(orientation,orientation_next);
+          cout << "orientation = " << orientation << " o_next = " << orientation_next << endl;
+          cout << "anticipating a TJ on the " << direction << endl;
+          facePassage(direction);
+          orientation = orientation_next;
+          ++lastIndex;
+        }
 
       if(distance_front > LANE_FOLLOW_MIN)
-	{
-	  cout << "\t\tSTILL ROOM, FOLLOWING LANE" << endl;
-	  followLane(3);
+        {
+          cout << "\t\tSTILL ROOM, FOLLOWING LANE" << endl;
+          bool blank;
+          followLane(3, blank, true);
 	  
-	}      
+        }
+      
     }
 }
 
@@ -296,6 +370,7 @@ int Controller::detectSymbolController(string& shape, string& color , Point & ce
       shape = currShape;
       color = currColor;
       return FOUND_SYMBOL;
+
     }
   // prevShape = currShape;
   // prevColor = currColor;
@@ -308,7 +383,7 @@ int Controller::detectSymbolController(string& shape, string& color , Point & ce
 
 #define CENTROID_OFFSET  120
 
-void Controller::followLane(int amount)
+void Controller::followLane(int amount , bool& foundLane , bool pmove)
 {
 
   cv::Mat frame;
@@ -323,23 +398,27 @@ void Controller::followLane(int amount)
   Point centroid;
   
   int flag = detectSymbolController(shape,color ,centroid);
+
   
   if( flag == FOUND_SYMBOL){
     cout << "found symbol to follow : " << centroid << endl;
     if( centroid.x - frame.cols/2 > CENTROID_OFFSET )
       {
-	right = true;
-	left = false;
+        right = true;
+        left = false;
       }
     else if (  frame.cols/2 - centroid.x > CENTROID_OFFSET)
       {
-	left = true;
-	right = false;	
+	
+        left = true;
+        right = false;
+	
+
       }
     else
       {
-	right = false;
-	left = false;
+        right = false;
+        left = false;
       }
 
     cv::circle(frame,centroid,3,CV_RGB(255,0,0) , 2, 8, 0 );
@@ -350,9 +429,9 @@ void Controller::followLane(int amount)
     
     for(int j = 0; j<5; j++)
       cap >> frame;
-    cout << "NO symbol to follow, using hough lines" << endl;
-    CamController::processVideo(frame , "LANE" , left , right);
-
+    foundLane = false;
+    CamController::processVideo(frame , "LANE" , left , right , foundLane);
+    
   }
   
   if( left == true )
@@ -371,8 +450,12 @@ void Controller::followLane(int amount)
     }
   cv::waitKey(20);
   cout << "\tFOLLOW LANE : moving " << dir << endl;
-  moveBot(dir, AMT_LANE);
+  if(pmove)
+    moveBot(dir, amount);
+  //moveBot("FORWARD" ,AMT_LANE);
+
 }
+
 
 
 

@@ -9,7 +9,7 @@
 //in micro seconds 
 #define MOVE_SLEEP_TIME 10000
 #define SERVO_SLEEP_TIME 1000000
-#define PING_WAIT_TIME 100000
+#define PING_WAIT_TIME 50000
 #define GRAD_LEFT_TIME 1
 #define GRAD_RIGHT_TIME 1
 #define PATH_HISTORY_SIZE 50
