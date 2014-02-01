@@ -5,6 +5,7 @@
 #include<iostream>
 #include<curses.h>
 #include <deque>
+#include<vector>
 //#define LOCO_ARDUINO "/dev/ttyUSB0"
 //#define DIST_ARDUINO "/dev/ttyACM0"
 
@@ -30,12 +31,12 @@ class Locomotor
   int getDistanceLeft();
   int getDistanceRight();
   string currentPos;
-  void facePassage(string passageDir);
+  //void facePassage(string passageDir);
   static Locomotor* getInstance();
   Locomotor();
   Locomotor(const Locomotor&);
   ~Locomotor();
-  vector<string> windBack(int amt = 5);
+  vector<string> windBack(int amt);
 
   
  private:

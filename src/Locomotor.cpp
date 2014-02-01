@@ -146,18 +146,17 @@ void Locomotor::gradualRight(int amount){
   usleep(MOVE_SLEEP_TIME);
 }
 
-vector<string> Locomotor::windBack(int amt){
+vector<string> Locomotor::windBack(int amt = 5)
+{
   string dir;
   vector<string> retrace;
-  int i;
+  int i = 0;
   while(path_history.size() > 0 && i < amt){
     i++;
     dir = path_history.back();
     path_history.pop_back();
     
-    if( dir != "FORWARD")
-      break;
-
+ 
     string opp_dir;
 
     if(dir == "LEFT")
@@ -248,44 +247,6 @@ int Locomotor::getDistanceRight(){
   return getDistance();
 }
 
-void Locomotor::facePassage(string passageDir){
-
-  int distance , curr_distance;
-  int vote = 0;
-  if (passageDir == "RIGHT"){
-
-    while(vote < 3){
-      ofstream file_out;
-      file_out.open("Dir" , std::ios_base::app);
-      file_out<< currentPos <<endl;
-      file_out.close();
-      curr_distance = getDistanceRight();
-      if(curr_distance> 1.5 * LANE_WIDTH)
-        vote++;
-      else if(vote>0)
-        vote--;
-      usleep(50000);
-      goForward();
-    }
-    goBackward(15);
-    gradualRight(300);
-  }
-  else  if (passageDir == "LEFT"){
-
-    while(vote < 3){
-      curr_distance = getDistanceLeft();
-      if(curr_distance> 1.5 *LANE_WIDTH)
-        vote++;
-      else if(vote>0)
-        vote--;
-      usleep(50000);      
-      goForward();
-    }
-    goBackward(15);
-    gradualLeft(300);
-      
-  }
-}
 
 void Locomotor::switchToKeyboard(){
 
@@ -335,10 +296,10 @@ void Locomotor::switchToKeyboard(){
     case 'x':
       return;
     case 'g':
-      facePassage("LEFT");
+      //facePassage("LEFT");
       break;
     case 'h':
-      facePassage("RIGHT");
+      //facePassage("RIGHT");
       break;
     case 'u':
       goUTurn(UTURN_AMOUNT);

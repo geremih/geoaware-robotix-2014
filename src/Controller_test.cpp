@@ -45,7 +45,7 @@ bool Controller::processPassage(string passageDir)
       // traverse tunnel
       tunnelMode = true;
       // facePassage will align and turn to face the passage (and enter slightly so that lane detection can easily pick up ?)
-      locomotor->facePassage(passageDir);
+      facePassage(passageDir);
       path = newpath;
       turned = true;
     }
@@ -76,14 +76,101 @@ bool Controller::processPassage(string passageDir)
       // if orientations match, take left at T-Junction
       if(turn_dir == passageDir)
 	{
-	  locomotor->facePassage(passageDir);
+	  facePassage(passageDir);
 	  turned = true;
 	}
       ++lastIndex;
     }
   return turned;
 }
-  
+
+
+
+
+
+#define LANE_WIDTH 40
+
+void Controller::turnCorner(string passageDir){
+
+    int distance , curr_distance;
+  int vote = 0;
+  if (passageDir == "RIGHT"){
+
+    while(vote < 3){
+      curr_distance = locomotor->getDistanceFront();
+      if(curr_distance<  50)
+        vote++;
+      else if(vote>0)
+        vote--;
+      usleep(50000);
+      followLane(1);
+      moveBot("FORWARD" ,1 );
+    }
+    moveBot("BACKWARD" ,15 );
+    locomotor->goRight(25);
+  }
+  else  if (passageDir == "LEFT"){
+
+    while(vote < 3){
+      curr_distance = locomotor->getDistanceFront();
+      if(curr_distance < 50)
+        vote++;
+      else if(vote>0)
+        vote--;
+      usleep(50000);
+      followLane(1);
+      moveBot("FORWARD" ,1 );
+    }
+    moveBot("BACKWARD" ,15 );
+    locomotor->goLeft(25);
+  }
+
+
+
+}
+void Controller::facePassage(string passageDir){
+
+  int distance , curr_distance;
+  int vote = 0;
+  if (passageDir == "RIGHT"){
+
+    while(vote < 3){
+      curr_distance = locomotor->getDistanceRight();
+      if(curr_distance> 1.5 * LANE_WIDTH)
+        vote++;
+      else if(vote>0)
+        vote--;
+      usleep(50000);
+      followLane(1);
+      moveBot("FORWARD" ,1 );
+    }
+    moveBot("BACKWARD" ,15 );
+    locomotor->gradualRight(300);
+  }
+  else  if (passageDir == "LEFT"){
+
+    while(vote < 3){
+      curr_distance = locomotor->getDistanceLeft();
+      if(curr_distance> 1.5 *LANE_WIDTH)
+        vote++;
+      else if(vote>0)
+        vote--;
+      usleep(50000);
+      followLane(1);
+      moveBot("FORWARD" ,1 );
+    }
+    moveBot("BACKWARD" ,15 );
+    locomotor->gradualLeft(300);
+  }
+}
+
+
+
+
+
+
+
+
 void Controller::mainLoop()
 {
   int flag;
@@ -103,9 +190,15 @@ void Controller::mainLoop()
       distance_front = locomotor->getDistanceFront();
       cout << "DISTANCE_FRONT : " << distance_front << endl;
       if(distance_front > LANE_FOLLOW_MIN)
-	followLane();
+	{
+	  cout << "\t\tSTILL ROOM, FOLLOWING LANE" << endl;
+	  followLane();
+	}
       else
-	moveBot("STRAIGHT",AMT_LANE);
+	{
+	  cout << "\t\tWEND OF CORRIDOR" << endl;
+	  // moveBot("STRAIGHT",A);
+	}
       
       if(distance_front < LANE_FOLLOW_MIN && i++ > 2)
 	{
@@ -117,12 +210,10 @@ void Controller::mainLoop()
 	  
 
 	  // reached a corner
-	  cout << "reached end, turning now" << endl;
-	  locomotor->facePassage("LEFT");
-
+	  cout << "\t\treached end, turning now" << endl;
+	  turnCorner("LEFT");
+	  i = 0;
 	}
-
-      
     }
 }
 
@@ -173,8 +264,9 @@ int Controller::detectSymbol(string& shape, string& color)
 }
 
 
-void Controller::followLane()
-{ 
+void Controller::followLane(int amount)
+{
+  
   //std::vector<cv::Mat> frames(MAX_ATTEMPTS);
   cv::Mat frame;
   string dir;
@@ -183,48 +275,36 @@ void Controller::followLane()
   for(int j = 0; j<5; j++)
     cap >> frame;
 
-  while(i<3)
-    {
-      cap>>frame;
       bool left ,right;
 
     CamController::processVideo(frame , "LANE" , left , right);
 
     if( left == true )
       {
-	nL++;
+	dir = "LEFT";
 
       }
     
     else if (right == true )
       {
-	nR++;
+	dir = "RIGHT";
       }
     else
       {
-	nS++;
+	dir = "STRAIGHT";
       }
-    
 
-    // if(CamController::laneFollowDir(frame) == "LEFT")
-    //    ++nL;
-    //  else if(CamController::laneFollowDir(frame) == "RIGHT")
-    //    ++nR;
-    //  else if(CamController::laneFollowDir(frame) == "STRAIGHT")
-    //    ++nS;
+    cv::waitKey(20);
 
-    i++;
-    }
-  cv::waitKey(500);
-  if(nL > nR && nL > nS)
-    dir = "LEFT";
-  else if(nR > nL && nR > nS)
-    dir = "RIGHT";
-  else
-    dir = "STRAIGHT";
+  // if(nL > nR && nL > nS)
+  //   dir = "LEFT";
+  // else if(nR > nL && nR > nS)
+  //   dir = "RIGHT";
+  // else
+  //   dir = "STRAIGHT";
   cout << "\tFOLLOW LANE : moving " << dir << endl;
   moveBot(dir, AMT_LANE);
-  moveBot("FORWARD" ,AMT_LANE);
+  //moveBot("FORWARD" ,AMT_LANE);
 }
 
 

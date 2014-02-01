@@ -23,23 +23,24 @@ int main(int argc , char **argv){
       capture>>frame;
     int backward =0;
     cp.processVideo( frame , "TUNNEL" , left ,right);
-    cp.processVideo(frame , "LANE" , left , right);
+    //cp.processVideo(frame , "LANE" , left , right);
 
     if( left == true )
       {
-	locomotor->goLeft(5);
+	cout<<"Tunnel on Left"<<endl;
+	//locomotor->goLeft(5);
 
       }
     
     else if (right == true )
       {
-	locomotor->goRight(5);
-
-
+	cout<<"Tunnel on Right"<<endl;
+	//locomotor->goRight(5);
       }
     else
       {
-	locomotor->goForward(5);
+	cout<<"No tunnel"<<endl;
+	//locomotor->goForward(5);
       }
     
     imshow("test",frame);
