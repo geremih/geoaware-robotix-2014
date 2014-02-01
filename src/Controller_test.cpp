@@ -17,9 +17,14 @@ Controller* Controller::getInstance(string path)
   return single;
 }
 
-Controller::Controller(string path)
+Controller::Controller(string mappath):
+  lastIndex(0), tunnelMode(false), orientation("?"), pathFound(false), m(mappath), mp(m), symbolDetector()
 {
+  path = mp.paths[0];
+  pathFound = true;
+  orientation = MapProcessor::getOrient(path[0],path[1]);
   locomotor = Locomotor::getInstance();
+  cv::waitKey(0);
   //cam = CamController::getInstance();
 }
 
@@ -92,7 +97,7 @@ bool Controller::processPassage(string passageDir)
 
 void Controller::turnCorner(string passageDir){
 
-    int distance , curr_distance;
+  int distance , curr_distance;
   int vote = 0;
   if (passageDir == "RIGHT"){
 
@@ -132,11 +137,12 @@ void Controller::facePassage(string passageDir){
 
   int distance , curr_distance;
   int vote = 0;
+  cout << "facing passage on the " << passageDir << endl;
   if (passageDir == "RIGHT"){
 
     while(vote < 3){
       curr_distance = locomotor->getDistanceRight();
-      if(curr_distance> 1.5 * LANE_WIDTH)
+      if(curr_distance> LANE_WIDTH)
         vote++;
       else if(vote>0)
         vote--;
@@ -151,7 +157,7 @@ void Controller::facePassage(string passageDir){
 
     while(vote < 3){
       curr_distance = locomotor->getDistanceLeft();
-      if(curr_distance> 1.5 *LANE_WIDTH)
+      if(curr_distance> LANE_WIDTH)
         vote++;
       else if(vote>0)
         vote--;
@@ -162,13 +168,8 @@ void Controller::facePassage(string passageDir){
     moveBot("BACKWARD" ,15 );
     locomotor->gradualLeft(300);
   }
+  cout << "face passage done" << endl;
 }
-
-
-
-
-
-
 
 
 void Controller::mainLoop()
@@ -194,11 +195,6 @@ void Controller::mainLoop()
 	  cout << "\t\tSTILL ROOM, FOLLOWING LANE" << endl;
 	  followLane();
 	}
-      else
-	{
-	  cout << "\t\tWEND OF CORRIDOR" << endl;
-	  // moveBot("STRAIGHT",A);
-	}
       
       if(distance_front < LANE_FOLLOW_MIN && i++ > 2)
 	{
@@ -213,6 +209,18 @@ void Controller::mainLoop()
 	  cout << "\t\treached end, turning now" << endl;
 	  turnCorner("LEFT");
 	  i = 0;
+	}
+      
+      cout << "lastIndex = " << lastIndex << "path.size : " << path.size() << endl;
+      if(lastIndex + 2 < path.size() && path[lastIndex+1].shape == "TJ")
+	{
+	  orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
+	  direction = MapProcessor::getDir(orientation,orientation_next);
+	  cout << "orientation = " << orientation << " o_next = " << orientation_next << endl;
+	  cout << "anticipating a TJ on the " << direction << endl;
+	  facePassage(direction);
+	  sleep(5);
+	  ++lastIndex;
 	}
     }
 }
@@ -275,26 +283,26 @@ void Controller::followLane(int amount)
   for(int j = 0; j<5; j++)
     cap >> frame;
 
-      bool left ,right;
+  bool left ,right;
 
-    CamController::processVideo(frame , "LANE" , left , right);
+  CamController::processVideo(frame , "LANE" , left , right);
 
-    if( left == true )
-      {
-	dir = "LEFT";
+  if( left == true )
+    {
+      dir = "LEFT";
 
-      }
+    }
     
-    else if (right == true )
-      {
-	dir = "RIGHT";
-      }
-    else
-      {
-	dir = "STRAIGHT";
-      }
+  else if (right == true )
+    {
+      dir = "RIGHT";
+    }
+  else
+    {
+      dir = "STRAIGHT";
+    }
 
-    cv::waitKey(20);
+  cv::waitKey(20);
 
   // if(nL > nR && nL > nS)
   //   dir = "LEFT";

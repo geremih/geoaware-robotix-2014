@@ -6,6 +6,7 @@
 #include "MapProcessor.h"
 #include "LiveSymbolDetector.h"
 #include "CamController.h"
+#include <vector>
 
 #define MAX_ATTEMPTS 5
 
@@ -35,7 +36,7 @@ class Controller
   Locomotor *locomotor;
   CamController *cam;
   Controller(string path);
-  static Controller* getInstance(string path);
+  static Controller* getInstance(string mappath);
   ~Controller();
   void start();
   void facePassage(string passageDir);
