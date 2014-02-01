@@ -4,7 +4,7 @@
 #include <fstream>
 #include<iostream>
 #include<curses.h>
-
+#include <deque>
 //#define LOCO_ARDUINO "/dev/ttyUSB0"
 //#define DIST_ARDUINO "/dev/ttyACM0"
 
@@ -16,6 +16,7 @@ class Locomotor
   static std::ofstream loco_arduino_out;
   static std::ofstream dist_arduino_out;
   static std::ifstream dist_arduino_in;
+  deque<string> path_history;
   void goLeft(int amount = 1);
   void goRight(int amount =1 );
   void goForward(int amount = 1);
@@ -23,6 +24,7 @@ class Locomotor
   void goUTurn( int amount=1);
   void gradualLeft(int amount = 1);
   void gradualRight(int amount = 1);
+  void addToPathHistory (string dir);
   void switchToKeyboard();
   int getDistanceFront();
   int getDistanceLeft();
@@ -33,6 +35,7 @@ class Locomotor
   Locomotor();
   Locomotor(const Locomotor&);
   ~Locomotor();
+  vector<string> windBack(int amt = 5);
 
   
  private:

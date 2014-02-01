@@ -42,7 +42,7 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
     #endif
 
     //remove nearly horizontal or vertical lines
-    if( ctheta * 180/PI < 10 || (ctheta * 180/PI < 100 && ctheta * 180/PI > 80) || (ctheta * 180/PI > 170) )
+    if( ctheta * 180/PI < 10 || (ctheta * 180/PI < 110 && ctheta * 180/PI > 70) || (ctheta * 180/PI > 170) )
       {
         hvlines.push_back( Vec2f( crho , ctheta));
         continue;
@@ -522,6 +522,13 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
       cout<<"RIGHT"<<endl;
     }
   }
+
+  else{
+    pLeft = false;
+    pRight = false;
+    cout<<"UNKOWN"<<endl;
+  }
+  
 }
 
 void CamController::isPassage(Mat frame , bool& pLeft,bool& pRight){

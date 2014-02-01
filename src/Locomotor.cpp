@@ -9,7 +9,7 @@
 #define PING_WAIT_TIME 10000
 #define GRAD_LEFT_TIME 1
 #define GRAD_RIGHT_TIME 1
-
+#define PATH_HISTORY_SIZE 50
 //no of iterations
 #define UTURN_AMOUNT 157
 
@@ -33,6 +33,12 @@ std::ofstream Locomotor::loco_arduino_out;
 std::ofstream Locomotor::dist_arduino_out;
 std::ifstream Locomotor::dist_arduino_in;
 
+
+void Locomotor::addToPathHistory (string dir){
+  if(path_history.size() > PATH_HISTORY_SIZE)
+    path_history.pop_front();
+  path_history.push_back( dir);
+}
 
 Locomotor::Locomotor(){
   //Start Serial Communication
@@ -87,6 +93,7 @@ Locomotor::~Locomotor(){
 void Locomotor::goLeft(int amount){
   for(int i =0 ; i< amount;i++){
     cout<< "Go Left" << endl;
+    addToPathHistory("LEFT");
     writeToLoco('a');
   }
   usleep(MOVE_SLEEP_TIME);
@@ -95,6 +102,7 @@ void Locomotor::goLeft(int amount){
 void Locomotor::goRight(int amount){
   for(int i =0 ; i< amount;i++){
     writeToLoco('d');
+    addToPathHistory("RIGHT");
     cout<< "Go Right" << endl;
   }
 }
@@ -102,6 +110,7 @@ void Locomotor::goRight(int amount){
 void Locomotor::goForward(int amount){
   for(int i =0 ; i< amount;i++){
     cout<< "Go Forward" << endl;
+    addToPathHistory("FORWARD");
     writeToLoco('w');
   }
 
@@ -111,6 +120,7 @@ void Locomotor::goForward(int amount){
 void Locomotor::goBackward(int amount){
   for(int i =0 ; i< amount;i++){
     cout<< "Go Backward" << endl;
+    addToPathHistory("BACKWARD");
     writeToLoco('s');
   }
   usleep(MOVE_SLEEP_TIME);
@@ -123,9 +133,8 @@ void Locomotor::gradualLeft(int amount){
     writeToLoco('z');
   }
   usleep(MOVE_SLEEP_TIME);
-
-  
 }
+
 
 
 
@@ -136,6 +145,38 @@ void Locomotor::gradualRight(int amount){
   }
   usleep(MOVE_SLEEP_TIME);
 }
+
+vector<string> Locomotor::windBack(int amt){
+  string dir;
+  vector<string> retrace;
+  int i;
+  while(path_history.size() > 0 && i < amt){
+    i++;
+    dir = path_history.back();
+    path_history.pop_back();
+    
+    if( dir != "FORWARD")
+      break;
+
+    string opp_dir;
+
+    if(dir == "LEFT")
+      opp_dir = "RIGHT";
+
+    if(dir == "RIGHT")
+      opp_dir = "LEFT";
+
+    if(dir == "FORWARD"){
+      opp_dir = "BACKWARD";
+     
+    }
+    retrace.push_back(opp_dir);
+  }
+
+  return retrace;
+
+}
+
 
 void Locomotor::goUTurn( int amount){
   goRight( UTURN_AMOUNT);
@@ -180,7 +221,7 @@ void Locomotor::servoRight(){
   if( currentPos != "RIGHT"){
     writeToDist('d');
     usleep(SERVO_SLEEP_TIME);
-    }
+  }
   currentPos = "RIGHT";
 }
 
@@ -222,7 +263,7 @@ void Locomotor::facePassage(string passageDir){
       if(curr_distance> 1.5 * LANE_WIDTH)
         vote++;
       else if(vote>0)
-	vote--;
+        vote--;
       usleep(50000);
       goForward();
     }
@@ -236,7 +277,7 @@ void Locomotor::facePassage(string passageDir){
       if(curr_distance> 1.5 *LANE_WIDTH)
         vote++;
       else if(vote>0)
-	vote--;
+        vote--;
       usleep(50000);      
       goForward();
     }
