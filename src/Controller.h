@@ -9,10 +9,10 @@
 
 #define MAX_ATTEMPTS 5
 
-#define AMT_LANE 1
+#define AMT_LANE 5
 #define AMT_TURN 10
 
-#define LANE_FOLLOW_MIN 15
+#define LANE_FOLLOW_MIN 40
 #define TAKE_TUNNEL 1
 #define FOUND_SYMBOL 2
 #define NOT_FOUND_SYMBOL 3
@@ -41,12 +41,12 @@ class Controller
   
  private:
   void mainLoop();
-  void move(string dir, int amt);
+  void moveBot(string dir, int amt);
   bool processPassage(string passageDir);
   int detectSymbol(string& shape, string& color);
   void selectPath();
   void followLane();
-  
+  static VideoCapture cap;
   static bool instanceFlag;
   static Controller* single;
 };

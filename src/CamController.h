@@ -15,7 +15,7 @@ using namespace cv;
 class CamController{
 
  public:
-  static string laneFollowDir(Mat frame); // return "LEFT" , "RIGHT" , "UNKOWN"
+  static string laneFollowDir(Mat frame); // return "LEFT" , "RIGHT" , "BACKWARD"
   static void isPassage( Mat frame ,bool& pLeft,bool& pRight); 
   static void processVideo(Mat image , string type , bool& pLeft , bool& pRight);
   static void  detectTunnel(vector<Vec6f> segments , bool& pLeft , bool& pRight);

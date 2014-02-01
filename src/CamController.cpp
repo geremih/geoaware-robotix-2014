@@ -28,14 +28,18 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
   bool exists = false;
 
   vector<Vec2f> hvlines;
-    cout<<"Crho ctheta are of the detected segments are"<<endl;
+#ifdef DEBUG
+  cout<<"Crho ctheta are of the detected segments are"<<endl;
+  #endif
   //Removing lines close to each other
   for(int i = 0; i < clines.size() ; i++){
 
     exists = false;
     float crho = clines[i][0], ctheta = clines[i][1];
 
+#ifdef DEBUG
     cout <<crho << " " << ctheta * 180 / PI<<endl;
+    #endif
 
     //remove nearly horizontal or vertical lines
     if( ctheta * 180/PI < 10 || (ctheta * 180/PI < 100 && ctheta * 180/PI > 80) || (ctheta * 180/PI > 170) )
@@ -56,13 +60,19 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
     }
   }
 
+#ifdef DEBUG
   cout<<"Rho and theta of the detected lines are:"<<endl;
+  #endif
   for( int j = 0 ; j < lines.size() ; j++){
     float rho = lines[j][0], theta = lines[j][1];
+#ifdef DEBUG
     cout<<j<<  " Rho: " <<  rho << " , Theta: " << theta * 180 / PI << endl;
+    #endif
   }
  
+#ifdef DEBUG
   cout<<"There are total " <<  lines.size() << " lines"<<endl;
+  #endif
 
   #ifdef IMSHOW
   imshow("Getting line segments on " , edgeIm);
@@ -122,8 +132,11 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
         p2 = Point(x , y);
         setP2 = true;
       }
-      else
+      else{
+#ifdef DEBUG
         cout<<"Error"<<endl;
+#endif
+      }
     }
     y = edgeIm.rows -1;
     x = (rho /a) - y*( b/a);
@@ -138,7 +151,9 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
         setP2 = true;
 
       }
+#ifdef DEBUG
       else cout<<"Error"<<endl;
+      #endif
     }
 
     x = edgeIm.cols -1;
@@ -154,7 +169,9 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
         p2 = Point(x , y);
         setP2 = true;
       }
+#ifdef DEBUG
       else cout<<"Error"<<endl;
+      #endif
     }
     x = 0;
     y = (rho /b) - x*( a/b);
@@ -168,7 +185,9 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
         p2 = Point(x , y);
         setP2 = true;
       }
+#ifdef DEBUG
       else cout<<"Error"<<endl;
+      #endif
     }
 
     //Find the points using the funda that the line will touch two edges
@@ -217,7 +236,9 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
     }
   }
 
+#ifdef DEBUG
   cout<<"The segments are"<< endl;
+  #endif
   vector<Vec6f> finalsegments;
   for(int i =0 ; i < segments.size(); i++)
     {
@@ -225,13 +246,17 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines){
       if(length > kernel*5)
         {
           finalsegments.push_back(segments[i]);
+#ifdef DEBUG
           cout<<" Rho: " << segments[i][4] << " Theta: " << segments[i][5] * 180 / PI;
+	  #endif
         }
 
     }
 
   
+#ifdef DEBUG
   cout<<"There are total " <<finalsegments.size() << " segments"<<endl;
+  #endif
 
 
   return finalsegments;
@@ -325,7 +350,9 @@ void CamController::detectTunnel(vector<Vec6f> segments , bool& pLeft , bool& pR
           ndist =  norm(Mat(Point(segments[i][2] , segments[i][3])),Mat(Point(segments[j][2] , segments[j][3])));
           distance = ndist < distance ? ndist : distance;
           if(distance > tunnelGap){
+
             cout<<"Tunnel detected";
+
             if( segments[j][5] < (PI/2)){
               pLeft= true;
               cout<<" on the left" <<endl;
@@ -384,13 +411,17 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
 
     // Draw the limes
     std::vector<Vec2f>::const_iterator it= lines.begin();
+#ifdef DEBUG
     cout<< "All lines detected by Hough"<<endl;
+    #endif
     while (it!=lines.end()) {
 
 
       float rho= (*it)[0];   // first element is distance rho
       float theta= (*it)[1]; // second element is angle theta
+#ifdef DEBUG
       cout<<"Rho: " << rho << " Theta: "<<theta <<endl;
+      #endif
       Point pt1(rho/cos(theta),0);        
       // point of intersection of the line with last row
       Point pt2((rho-result.rows*sin(theta))/cos(theta),result.rows);
@@ -412,10 +443,14 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
       return;
     }
 
+#ifdef DEBUG
     cout<<" Trying to detect lanes"<<endl;
+    #endif
     for ( int i =0 ; i< segments.size(); i++)
       for( int j = i+1 ; j <segments.size(); j++){
+#ifdef DEBUG
         cout<< segments[i][5] << " " << segments[j][5] << " sum is " << (segments[i][5] + segments[j][5]) * 180 /PI<<endl;
+	#endif
         if( abs ((segments[i][5] + segments[j][5])* 180 /PI - 180 ) < LANE_ANGLE_THRESH)
           {
             seg1 = i;
@@ -433,7 +468,9 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
       }
     }
   }
+
   cout<<"Using hough vote " << houghVote<<endl;
+
   #ifdef IMSHOW
   imshow("Personal algo", contoursInv);
   #endif
@@ -448,7 +485,9 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
     if( segments[seg1][5] * 180/PI +segments[seg2][5] * 180/PI > 190 ){
       pLeft = true;
       pRight = false;
+
       cout<< "LEFT"<<endl;
+
     }
     else if( segments[seg1][5] * 180/PI + segments[seg2][5] * 180/PI  < 170 ){
       pRight = true;

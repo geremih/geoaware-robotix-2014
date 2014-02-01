@@ -26,7 +26,7 @@ bool Locomotor::streamFlag = false;
 
 Locomotor* Locomotor::single = NULL;
 
-char LOCO_ARDUINO[] = "/dev/ttyUSB1";
+char LOCO_ARDUINO[] = "/dev/ttyUSB0";
 char DIST_ARDUINO[] = "/dev/ttyACM0";
 
 std::ofstream Locomotor::loco_arduino_out;
@@ -226,8 +226,8 @@ void Locomotor::facePassage(string passageDir){
       usleep(50000);
       goForward();
     }
-    goBackward(20);
-    gradualRight(1200);
+    goBackward(15);
+    gradualRight(300);
   }
   else  if (passageDir == "LEFT"){
 
@@ -240,8 +240,8 @@ void Locomotor::facePassage(string passageDir){
       usleep(50000);      
       goForward();
     }
-    goBackward(20);
-      gradualLeft(1200);
+    goBackward(15);
+    gradualLeft(300);
       
   }
 }

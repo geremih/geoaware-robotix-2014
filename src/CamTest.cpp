@@ -21,18 +21,21 @@ int main(int argc , char **argv){
 
     for(int i=0;i<5;++i)
       capture>>frame;
-    
+    int backward =0;
     cp.processVideo( frame , "TUNNEL" , left ,right);
     cp.processVideo(frame , "LANE" , left , right);
 
-    if( left == true)
+    if( left == true )
       {
 	locomotor->goLeft(5);
+
       }
     
-    else if (right == true)
+    else if (right == true )
       {
 	locomotor->goRight(5);
+
+
       }
     else
       {

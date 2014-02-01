@@ -2,8 +2,6 @@ CFLAGS = `pkg-config --cflags opencv`
 LIBS = `pkg-config --libs opencv`
 
 SOURCES = Landmark.cpp  Map.cpp  MapProcessor.cpp TJunction.cpp Waypoint.cpp LiveSymbolDetector.cpp Locomotor.cpp Main.cpp
-
-
 HEADERS = *.h
 
 all : $(SOURCES) $(HEADERS)
@@ -21,3 +19,6 @@ camController: CamController.cpp CamTest.cpp Locomotor.cpp
 
 clean:
 	rm GeoAware Locomotor 
+
+test:
+	g++ -g -o Test   Landmark.cpp   CamController.cpp   Map.cpp  MapProcessor.cpp TJunction.cpp Waypoint.cpp LiveSymbolDetector.cpp Locomotor.cpp Controller_test.cpp $(LIBS) -lncurses
