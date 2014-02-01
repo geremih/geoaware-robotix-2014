@@ -308,9 +308,9 @@ void removeSymbols(Mat& img){
           int hue = (int)intensity.val[0];
           int sat = (int)intensity.val[1];
           int val = (int)intensity.val[2];
-          if(sat > 50 && val > 50)
+          if(val > 50)
             colored++;
-          else if( val < 10)
+          else if( val < 50)
             black++;
           else{
             white++;

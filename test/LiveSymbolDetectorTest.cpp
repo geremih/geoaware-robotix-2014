@@ -285,6 +285,7 @@ int main()
   while(true)
     {
       cap >> src;
+      
       //src = cv::imread("../assets/samples/symbols/shape_3.jpg");
       Rect roi(0,src.rows/8,src.cols-1,src.rows - src.rows/8);// set the ROI for the image
       src = src(roi); 

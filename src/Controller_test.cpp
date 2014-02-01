@@ -24,7 +24,6 @@ Controller::Controller(string mappath, string ACM , string USB):
   pathFound = true;
   orientation = MapProcessor::getOrient(path[0],path[1]);
   locomotor = Locomotor::getInstance(ACM , USB);
-  cv::waitKey(0);
   //cam = CamController::getInstance();
 }
 
@@ -37,14 +36,12 @@ void Controller::start()
 bool Controller::processPassage(string passageDir)
 {
   bool turned = false;
-  int flag;
+  int flag = -1;
   string orientation_next;
   std::vector<Landmark> newpath;
   
-  // tunnel dilemma sends newpath consistent with lastIndex
-  // check params (pass by ref tunnelExitDir)
-  //flag = mp.tunnelDilemma(passageDir,path,lastIndex,newpath, 0.5);
   flag = NOT_FOUND_TUNNEL;
+  
   if(flag == FOUND_TUNNEL_AND_TAKE && pathFound)
     {
       // traverse tunnel
@@ -88,9 +85,6 @@ bool Controller::processPassage(string passageDir)
     }
   return turned;
 }
-
-
-
 
 
 #define LANE_WIDTH 40
@@ -174,7 +168,7 @@ void Controller::facePassage(string passageDir){
 
 void Controller::mainLoop()
 {
-  int flag;
+  int flag = -1;
   bool turned;
   string passageDir;
   string orientation_next, direction;
@@ -193,17 +187,10 @@ void Controller::mainLoop()
       cout << "current orientation : " << orientation << endl;
 
       Point centroid;
-      flag = detectSymbol(shape,color ,centroid);
+      flag = detectSymbolController(shape,color ,centroid);
       if(distance_front < LANE_FOLLOW_MIN && i++ > 2)
 	{
 	  i=0;
-	  // reached end of corridor
-	  // Cases :
-	  // 1. end of tunnel
-	  // 2. corner
-	  // in case of a T-Junction we would have already turned to face it above
-	  
-
 	  // reached a corner
 	  cout << "\t\treached end, turning now" << endl;
 	  if(lastIndex == path.size() -2)
@@ -211,7 +198,6 @@ void Controller::mainLoop()
 	      cout << "DONE" << endl;
 	      exit(1);
 	    }
-
 	  if(flag == FOUND_SYMBOL)
 	    {
 	      if(shape == path[lastIndex+1].shape && color == path[lastIndex+1].color)
@@ -266,10 +252,9 @@ void Controller::mainLoop()
       if(distance_front > LANE_FOLLOW_MIN)
 	{
 	  cout << "\t\tSTILL ROOM, FOLLOWING LANE" << endl;
-	  followLane();
+	  followLane(3);
 	  
-	}
-      
+	}      
     }
 }
 
@@ -289,36 +274,33 @@ void Controller::moveBot(string dir, int amt)
   
 }
 
-int Controller::detectSymbol(string& shape, string& color , Point & centroid)
+int Controller::detectSymbolController(string& shape, string& color , Point & centroid)
 {
   cv::Mat frame;
-
   int i = 0;
   string prevShape = "",prevColor = "";
   string currShape,currColor;
 
-  cout << "centroid in detect symbol " << centroid << endl;
-  while(i<MAX_ATTEMPTS - 1)
+  // while(i<MAX_ATTEMPTS - 1)
+  //   {
+  // if 2 successive frames detect same symbol, return it
+  for(int j=0;j<5;++j)
+    cap >> frame;
+  Rect roi(0,frame.rows/8,frame.cols-1,frame.rows - frame.rows/8);// set the ROI for the image
+  frame = frame(roi); 
+  centroid = symbolDetector.getSymbol(frame,currShape,currColor);
+  cout << "centroid in controller, detect symbol : " << centroid << endl;
+
+  if((currShape == "CIRCLE" || currShape == "TRIANGLE" || currShape == "SQUARE") && (currColor == "BLUE" || currColor == "RED" || currColor == "GREEN"))
     {
-      // if 2 successive frames detect same symbol, return it
-      for(int j=0;j<5;++j)
-	cap >> frame;
-      Rect roi(0,frame.rows/8,frame.cols-1,frame.rows - frame.rows/8);// set the ROI for the image
-      frame = frame(roi); 
-      centroid = symbolDetector.getSymbol(frame,currShape,currColor);
-      cout << "centroid in controller, detect symbol : " << centroid << endl;
-      
-      if(currShape == "CIRCLE" || currShape == "TRIANGLE" || currShape == "SQUARE")
-	{
-	  shape = currShape;
-	  color = currColor;
-	  return FOUND_SYMBOL;
-	}
-      prevShape = currShape;
-      prevColor = currColor;
-      ++i;
-      cv::waitKey(33);
+      shape = currShape;
+      color = currColor;
+      return FOUND_SYMBOL;
     }
+  // prevShape = currShape;
+  // prevColor = currColor;
+  //cv::waitKey(33);
+  // }
 
   return NOT_FOUND_SYMBOL;
 }
@@ -340,11 +322,10 @@ void Controller::followLane(int amount)
   string shape , color;
   Point centroid;
   
-  int flag = detectSymbol(shape,color ,centroid);
-  //std::vector<cv::Mat> frames(MAX_ATTEMPTS);
-
+  int flag = detectSymbolController(shape,color ,centroid);
+  
   if( flag == FOUND_SYMBOL){
-
+    cout << "found symbol to follow : " << centroid << endl;
     if( centroid.x - frame.cols/2 > CENTROID_OFFSET )
       {
 	right = true;
@@ -352,10 +333,8 @@ void Controller::followLane(int amount)
       }
     else if (  frame.cols/2 - centroid.x > CENTROID_OFFSET)
       {
-	
 	left = true;
-	right = false;
-	
+	right = false;	
       }
     else
       {
@@ -369,10 +348,10 @@ void Controller::followLane(int amount)
   }
   else {
     
-  for(int j = 0; j<5; j++)
-    cap >> frame;
-
-  CamController::processVideo(frame , "LANE" , left , right);
+    for(int j = 0; j<5; j++)
+      cap >> frame;
+    cout << "NO symbol to follow, using hough lines" << endl;
+    CamController::processVideo(frame , "LANE" , left , right);
 
   }
   
@@ -390,17 +369,9 @@ void Controller::followLane(int amount)
     {
       dir = "STRAIGHT";
     }
-  //sleep(5);
   cv::waitKey(20);
-  // if(nL > nR && nL > nS)
-  //   dir = "LEFT";
-  // else if(nR > nL && nR > nS)
-  //   dir = "RIGHT";
-  // else
-  //   dir = "STRAIGHT";
   cout << "\tFOLLOW LANE : moving " << dir << endl;
   moveBot(dir, AMT_LANE);
-  //moveBot("FORWARD" ,AMT_LANE);
 }
 
 

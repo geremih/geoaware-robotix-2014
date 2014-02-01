@@ -8,6 +8,30 @@ LiveSymbolDetector::LiveSymbolDetector()
   srand(time(NULL));
 }
 
+string getColorHSV( int h , int s , int v){
+
+  string color = "default";
+  if( s > 100 && v >100){
+    if( h < 20 || h > 340){
+      color = "RED";
+    }
+    else if( h > 220 && h < 260){
+      color = "BLUE";
+    }
+    else if ( h>100 && h < 140){
+      color = "GREEN";
+    }
+  }
+  else if ( s<  50 && v > 50){
+    color = "WHITE";
+  }
+  else if ( v < 50){
+    color = "BLACK";
+  }
+  cout << "h = " << h << ", s = " << s << ", v = " << v << endl;
+  return color;   
+
+}
 void LiveSymbolDetector::addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& centers, std::vector<float>& radii, std::vector<double>& areas, std::vector<string>& shapes, std::vector<string>& colors, std::vector<cv::Point>& actual)
 {
   cv::Point2f center;
@@ -16,38 +40,56 @@ void LiveSymbolDetector::addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& 
   
   cv::minEnclosingCircle( (Mat)actual, center, radius );
   area = cv::contourArea(actual);
-
+  string color;
+  color = "default";
   Mat hsv;
-  //cvtColor(src_thresh ,hsv ,CV_RGB2HSV);
-  Vec3b intensity = src_thresh.at<Vec3b>((int)center.y,(int)center.x);
-  int blue = 0, green = 0, red = 0;
-  for(int i=center.x - 10; i < center.x + 10; ++i)
+  cvtColor(src_thresh ,hsv ,CV_RGB2HSV);
+  
+  // Vec3b intensity = src_thresh.at<Vec3b>((int)center.y,(int)center.x);
+  
+  int blue = 0, green = 0, red = 0, black = 0, white = 0, none = 0;
+  for(int i=center.x - 5; i < center.x + 5; ++i)
     {
-      for(int j=center.y - 10; j < center.y + 10; ++j)
+      for(int j=center.y - 5; j < center.y + 5; ++j)
 	{
+	  // Vec3b intensity = hsv.at<Vec3b>((int)center.y,(int)center.x);
+	  // int hue = (int)intensity.val[0];
+	  // int sat = (int)intensity.val[1];
+	  // int val = (int)intensity.val[2];
+	  // color = getColorHSV(hue , val , sat);
+	   Vec3b intensity = src_thresh.at<Vec3b>((int)center.y,(int)center.x);
 	  int b = (int)intensity.val[0];
 	  int g = (int)intensity.val[1];
 	  int r = (int)intensity.val[2];
-	  if(b>g && b>r)
+	  color = getColor(b,g,r);
+
+	  if(color == "BLUE")
 	    ++blue;
-	  if(g>b && g>r)
+	  if(color == "GREEN")
 	    ++green;
-	  if(r>b && r>g)
+	  if(color == "RED")
 	    ++red;
+	  if(color == "WHITE")
+	    ++white;
+	  if(color == "BLACK")
+	    ++black;
+	  if(color == "default")
+	    ++none;
 	}
     }
-  string color;
-  color = "default";
-  if(blue > green && blue > red)
-    color = "BLUE";
-  
-  // Vec3b intensity = hsv.at<Vec3b>((int)center.y,(int)center.x);
-  // int hue = (int)intensity.val[0];
-  // int sat = (int)intensity.val[1];
-  // int val = (int)intensity.val[2];
-  // string color = getColor(hue , sat ,val);
 
-  
+  if(blue > 50)
+    color = "BLUE";
+  else if(red > 50)
+    color = "RED";
+  else if(green> 50)
+    color = "GREEN";
+  else if(black > 50)
+    color = "BLACK";
+  else if(white > 50)
+    color = "WHITE";
+  else if(none > 50)
+    color = "NONE";
   
   centers.push_back(center);
   radii.push_back(radius);
@@ -137,12 +179,12 @@ Point LiveSymbolDetector::detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat 
       cout << "added : center = " << centers[i] <<", radius = " << radii[i] << ", area = " << areas[i] << ", shape = " << shapes[i] << endl;
     }
 
-  if(centers.size() == 0 || colors[s] == "BROWN")
+  if(centers.size() == 0)
     {
       cout << "Could not detect symbol!" << endl;
       shape = "?";
       color = "?";
-      return Point(0,0);
+      return Point(-1,-1);
     }
   
   // print details of biggest shape
@@ -192,9 +234,7 @@ Point LiveSymbolDetector::getSymbol(cv::Mat src, string& shape, string& color)
   cv::Mat eroded, dilated, dilated_blur;
   cv::Mat kernel = Mat::ones(Size(7, 7), CV_8U);
 
-  Rect roi(0,src.rows/8,src.cols-1,src.rows - src.rows/8);// set the ROI for the image
-  src = src(roi);
-  imshow("symbol roi",src);
+  // src already roi'ed by caller
   //src = cv::imread("../assets/samples/symbols/shape_1.jpg");
       
   cv::cvtColor( src, src_gray, COLOR_RGB2GRAY );
@@ -208,15 +248,16 @@ Point LiveSymbolDetector::getSymbol(cv::Mat src, string& shape, string& color)
       
   cv::Canny(dilated, edges_normal, 50, 200, 3 );
 
-  Point centroid;
-  centroid  = detectSymbol(src, src_thresh, edges_normal, shape, color);
-      
+  Point centroid  = detectSymbol(src, src_thresh, edges_normal, shape, color);
+  
   cv::imshow("src",src);
   cv::imshow("thresh", src_thresh);
   cv::imshow("eroded",eroded);
   cv::imshow("dilated",dilated);
   cv::imshow("edges_normal",edges_normal);
+  
   cout << "returning from LSD::getSymbol : centroid " << centroid << endl;
+  
   return centroid;
 }
 
@@ -250,35 +291,33 @@ bool LiveSymbolDetector::isPrimaryColor(int blue, int green, int red)
   return ((blue-green>PRIMARY_THRESHOLD && blue-red>PRIMARY_THRESHOLD) || (green-blue>PRIMARY_THRESHOLD && green-red>PRIMARY_THRESHOLD) || (red-blue>PRIMARY_THRESHOLD && red-green>PRIMARY_THRESHOLD));
 }
 
-string LiveSymbolDetector::getColor(int hue , int val , int sat)
+string LiveSymbolDetector::getColor(int blue, int green, int red)
 {
   string color;
-  // if(isPrimaryColor(blue,green,red))
-  //   {
-  //     if(blue>green && blue>red)
-  // 	color = "BLUE";
-  //     else if(green>blue && green>red)
-  // 	color = "GREEN";
-  //     else
-  // 	color = "RED";
-  //   }
-  // else
-  //   {
-  //     if(red>200 && green>200)
-  // 	color = "YELLOW";
-  //     else
-  // 	color = "BROWN";
-  //   }
+  if(isPrimaryColor(blue,green,red))
+    {
+      if(blue>green && blue>red)
+   	color = "BLUE";
+      else if(green>blue && green>red)
+   	color = "GREEN";
+      else
+   	color = "RED";
+    }
+  else
+    {
+      if(red>200 && green>200)
+   	color = "YELLOW";
+      else
+   	color = "BROWN";
+    }
 
-  if( hue < 20 || hue > 160)
-    color = "RED";
-  else  if( hue > 40 || hue <80)
-    color = "BLUE";
-  else  if( hue < 100 || hue < 140)
-    color = "GREEN";
-      
-      
-      
+  // if( hue < 20 || hue > 160)
+  //   color = "RED";
+  // else  if( hue > 40 || hue <80)
+  //   color = "BLUE";
+  // else  if( hue < 100 || hue < 140)
+  //   color = "GREEN";
+            
   return color;
 }
 

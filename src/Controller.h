@@ -45,7 +45,7 @@ class Controller
   void mainLoop();
   void moveBot(string dir, int amt);
   bool processPassage(string passageDir);
-  int detectSymbol(string& shape, string& color , Point& centroid);
+  int detectSymbolController(string& shape, string& color , Point& centroid);
   void selectPath();
   void followLane(int amount = AMT_LANE) ;
   static VideoCapture cap;
