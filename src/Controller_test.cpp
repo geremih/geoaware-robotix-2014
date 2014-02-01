@@ -6,24 +6,24 @@ Controller* Controller::single = NULL;
 
 VideoCapture  Controller::cap(0);
 
-Controller* Controller::getInstance(string path)
+Controller* Controller::getInstance(string path , string ACM , string USB)
 {
   if(!instanceFlag)
     {
-      single = new Controller(path);
+      single = new Controller(path, ACM , USB);
       cout<<"Created new controller instance"<<endl;
       instanceFlag = true;
     }
   return single;
 }
 
-Controller::Controller(string mappath):
+Controller::Controller(string mappath, string ACM , string USB):
   lastIndex(0), tunnelMode(false), orientation("?"), pathFound(false), m(mappath), mp(m), symbolDetector()
 {
   path = mp.paths[0];
   pathFound = true;
   orientation = MapProcessor::getOrient(path[0],path[1]);
-  locomotor = Locomotor::getInstance();
+  locomotor = Locomotor::getInstance(ACM , USB);
   cv::waitKey(0);
   //cam = CamController::getInstance();
 }
@@ -191,12 +191,9 @@ void Controller::mainLoop()
       distance_front = locomotor->getDistanceFront();
       cout << "DISTANCE_FRONT : " << distance_front << endl;
       cout << "current orientation : " << orientation << endl;
-      if(distance_front > LANE_FOLLOW_MIN)
-	{
-	  cout << "\t\tSTILL ROOM, FOLLOWING LANE" << endl;
-	  followLane();
-	}
-      
+
+      Point centroid;
+      flag = detectSymbol(shape,color ,centroid);
       if(distance_front < LANE_FOLLOW_MIN && i++ > 2)
 	{
 	  i=0;
@@ -214,7 +211,7 @@ void Controller::mainLoop()
 	      cout << "DONE" << endl;
 	      exit(1);
 	    }
-	  flag = detectSymbol(shape,color);
+
 	  if(flag == FOUND_SYMBOL)
 	    {
 	      if(shape == path[lastIndex+1].shape && color == path[lastIndex+1].color)
@@ -252,6 +249,8 @@ void Controller::mainLoop()
 	    }
 	  continue;
 	}
+
+      
       cout << "lastIndex = " << lastIndex << "path.size : " << path.size() << endl;
       if(lastIndex + 2 < path.size() && path[lastIndex+1].shape == "TJ")
 	{
@@ -263,6 +262,14 @@ void Controller::mainLoop()
 	  orientation = orientation_next;
 	  ++lastIndex;
 	}
+
+      if(distance_front > LANE_FOLLOW_MIN)
+	{
+	  cout << "\t\tSTILL ROOM, FOLLOWING LANE" << endl;
+	  followLane();
+	  
+	}
+      
     }
 }
 
@@ -282,22 +289,26 @@ void Controller::moveBot(string dir, int amt)
   
 }
 
-int Controller::detectSymbol(string& shape, string& color)
+int Controller::detectSymbol(string& shape, string& color , Point & centroid)
 {
   cv::Mat frame;
 
   int i = 0;
-  string prevShape,prevColor;
+  string prevShape = "",prevColor = "";
   string currShape,currColor;
 
-  // if 2 successive frames detect same symbol, return it
-  cap >> frame;
-  symbolDetector.getSymbol(frame,prevShape,prevColor);
+  cout << "centroid in detect symbol " << centroid << endl;
   while(i<MAX_ATTEMPTS - 1)
     {
-      cap >> frame;
-      symbolDetector.getSymbol(frame,currShape,currColor);
-      if(currShape == prevShape && currColor == prevColor)
+      // if 2 successive frames detect same symbol, return it
+      for(int j=0;j<5;++j)
+	cap >> frame;
+      Rect roi(0,frame.rows/8,frame.cols-1,frame.rows - frame.rows/8);// set the ROI for the image
+      frame = frame(roi); 
+      centroid = symbolDetector.getSymbol(frame,currShape,currColor);
+      cout << "centroid in controller, detect symbol : " << centroid << endl;
+      
+      if(currShape == "CIRCLE" || currShape == "TRIANGLE" || currShape == "SQUARE")
 	{
 	  shape = currShape;
 	  color = currColor;
@@ -313,21 +324,58 @@ int Controller::detectSymbol(string& shape, string& color)
 }
 
 
+#define CENTROID_OFFSET  120
+
 void Controller::followLane(int amount)
 {
-  
-  //std::vector<cv::Mat> frames(MAX_ATTEMPTS);
+
   cv::Mat frame;
+  bool left ,right;
+  cap >> frame;
+  
   string dir;
   int i = 0;
   int nL = 0, nR = 0, nS = 0;
+
+  string shape , color;
+  Point centroid;
+  
+  int flag = detectSymbol(shape,color ,centroid);
+  //std::vector<cv::Mat> frames(MAX_ATTEMPTS);
+
+  if( flag == FOUND_SYMBOL){
+
+    if( centroid.x - frame.cols/2 > CENTROID_OFFSET )
+      {
+	right = true;
+	left = false;
+      }
+    else if (  frame.cols/2 - centroid.x > CENTROID_OFFSET)
+      {
+	
+	left = true;
+	right = false;
+	
+      }
+    else
+      {
+	right = false;
+	left = false;
+      }
+
+    cv::circle(frame,centroid,3,CV_RGB(255,0,0) , 2, 8, 0 );
+    cout << "aiming at : " << centroid << ", frame.cols/2 = " << frame.cols/2 << endl;
+    imshow("frame",frame);
+  }
+  else {
+    
   for(int j = 0; j<5; j++)
     cap >> frame;
 
-  bool left ,right;
-
   CamController::processVideo(frame , "LANE" , left , right);
 
+  }
+  
   if( left == true )
     {
       dir = "LEFT";
@@ -342,9 +390,8 @@ void Controller::followLane(int amount)
     {
       dir = "STRAIGHT";
     }
-
+  //sleep(5);
   cv::waitKey(20);
-
   // if(nL > nR && nL > nS)
   //   dir = "LEFT";
   // else if(nR > nL && nR > nS)
@@ -360,13 +407,17 @@ void Controller::followLane(int amount)
 
 int main(int argc, char *argv[])
 {
-  if(argc!=2)
+  if(argc< 2)
     {
       cout << "Usage : ./GeoAware <path/to/map>" << endl;
       exit(1);
     }
-  
-  Controller *controller = Controller::getInstance(argv[1]);
+
+  Controller * controller;
+  if(argc ==4)
+    controller = Controller::getInstance(argv[1] , argv[2], argv[3]);
+  else
+    controller = Controller::getInstance(argv[1]);
   cout << "created controller, starting loop now " << endl;
   controller->start();
   return 0;

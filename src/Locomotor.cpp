@@ -1,12 +1,15 @@
 #include"Locomotor.h"
 #include "GeoAware.h"
 #include<stdlib.h>
-
+#include <string.h>
 #define LANE_WIDTH 40
+#define BOWSER_LENGTH 23
+
+
 //in micro seconds 
 #define MOVE_SLEEP_TIME 10000
 #define SERVO_SLEEP_TIME 1000000
-#define PING_WAIT_TIME 10000
+#define PING_WAIT_TIME 100000
 #define GRAD_LEFT_TIME 1
 #define GRAD_RIGHT_TIME 1
 #define PATH_HISTORY_SIZE 50
@@ -26,8 +29,8 @@ bool Locomotor::streamFlag = false;
 
 Locomotor* Locomotor::single = NULL;
 
-char LOCO_ARDUINO[] = "/dev/ttyUSB0";
-char DIST_ARDUINO[] = "/dev/ttyACM0";
+char LOCO_ARDUINO[14] = "/dev/ttyUSB";
+char  DIST_ARDUINO[14] = "/dev/ttyACM";
 
 std::ofstream Locomotor::loco_arduino_out;
 std::ofstream Locomotor::dist_arduino_out;
@@ -40,10 +43,13 @@ void Locomotor::addToPathHistory (string dir){
   path_history.push_back( dir);
 }
 
-Locomotor::Locomotor(){
+Locomotor::Locomotor(  string ACM ,  string USB){
   //Start Serial Communication
   cout<<"Constructing"<<endl;
   currentPos= "NONE";
+  strcat(LOCO_ARDUINO, USB.c_str()) ;
+  strcat(DIST_ARDUINO, ACM.c_str()) ;
+  cout<<"CURRENTLY USING " <<  DIST_ARDUINO << " AND " << LOCO_ARDUINO<<endl;
   if(!streamFlag)
     {    
       Locomotor::loco_arduino_out.open(LOCO_ARDUINO , std::ios_base::app);
@@ -67,11 +73,11 @@ void Locomotor::writeToDist( char c){
 }
 
 
-Locomotor * Locomotor::getInstance()
+Locomotor * Locomotor::getInstance(string ACM , string USB)
 {
   if(! instanceFlag)
     {
-      single = new Locomotor();
+      single = new Locomotor(ACM , USB);
       cout<<"Created new instance"<<endl;
       instanceFlag = true;
       return single;

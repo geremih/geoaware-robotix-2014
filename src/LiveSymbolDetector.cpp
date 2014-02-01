@@ -16,11 +16,38 @@ void LiveSymbolDetector::addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& 
   
   cv::minEnclosingCircle( (Mat)actual, center, radius );
   area = cv::contourArea(actual);
+
+  Mat hsv;
+  //cvtColor(src_thresh ,hsv ,CV_RGB2HSV);
   Vec3b intensity = src_thresh.at<Vec3b>((int)center.y,(int)center.x);
-  int blue = (int)intensity.val[0];
-  int green = (int)intensity.val[1];
-  int red = (int)intensity.val[2];
-  string color = getColor(blue,green,red);
+  int blue = 0, green = 0, red = 0;
+  for(int i=center.x - 10; i < center.x + 10; ++i)
+    {
+      for(int j=center.y - 10; j < center.y + 10; ++j)
+	{
+	  int b = (int)intensity.val[0];
+	  int g = (int)intensity.val[1];
+	  int r = (int)intensity.val[2];
+	  if(b>g && b>r)
+	    ++blue;
+	  if(g>b && g>r)
+	    ++green;
+	  if(r>b && r>g)
+	    ++red;
+	}
+    }
+  string color;
+  color = "default";
+  if(blue > green && blue > red)
+    color = "BLUE";
+  
+  // Vec3b intensity = hsv.at<Vec3b>((int)center.y,(int)center.x);
+  // int hue = (int)intensity.val[0];
+  // int sat = (int)intensity.val[1];
+  // int val = (int)intensity.val[2];
+  // string color = getColor(hue , sat ,val);
+
+  
   
   centers.push_back(center);
   radii.push_back(radius);
@@ -29,7 +56,8 @@ void LiveSymbolDetector::addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& 
   colors.push_back(color);
 }
 
-void LiveSymbolDetector::detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges, string& shape, string& color)
+Point LiveSymbolDetector::detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges, string& shape, string& color)
+
 {
   std::vector<std::vector<cv::Point> > contours_dupl;
   std::vector<std::vector<cv::Point> > contours;
@@ -100,14 +128,6 @@ void LiveSymbolDetector::detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat e
 	}
     }
   
-  if(centers.size() == 0)
-    {
-      cout << "Could not detect symbol!" << endl;
-      shape = "?";
-      color = "?";
-      return;
-    }
-  
   // get index of largest area shape
   int s = 0;
   for(i = 0;i < areas.size(); ++i)
@@ -116,14 +136,24 @@ void LiveSymbolDetector::detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat e
 	s = i;
       cout << "added : center = " << centers[i] <<", radius = " << radii[i] << ", area = " << areas[i] << ", shape = " << shapes[i] << endl;
     }
+
+  if(centers.size() == 0 || colors[s] == "BROWN")
+    {
+      cout << "Could not detect symbol!" << endl;
+      shape = "?";
+      color = "?";
+      return Point(0,0);
+    }
   
   // print details of biggest shape
   clr = CV_RGB(rand()%255,rand()%255,rand()%255);
   cv::circle(src, centers[s], radii[s], clr, 2, 8, 0 );
-  cout << "detected : shape = " << shapes[s] << ", color = " << colors[s] << endl;
+  cout << "detected : shape = " << shapes[s] << ", color = " << colors[s] << ", area = " << areas[s] << endl;
   cout << "-------------------" << endl;
   shape = shapes[s];
   color = colors[s];
+  cout << "returning from LSD detect symbol : " << centers[s] << endl;
+  return centers[s];
 }
 
 // custom threshold function for pre-processing
@@ -155,14 +185,16 @@ void LiveSymbolDetector::customThreshold(cv::Mat& src_color, cv::Mat& dst, int t
     }
 }
 
-void LiveSymbolDetector::getSymbol(cv::Mat src, string& shape, string& color)
+Point LiveSymbolDetector::getSymbol(cv::Mat src, string& shape, string& color)
 {  
   cv::Mat  src_gray, src_thresh;
   cv::Mat edges_normal, edges_smooth;
   cv::Mat eroded, dilated, dilated_blur;
   cv::Mat kernel = Mat::ones(Size(7, 7), CV_8U);
 
-  //cap >> src;
+  Rect roi(0,src.rows/8,src.cols-1,src.rows - src.rows/8);// set the ROI for the image
+  src = src(roi);
+  imshow("symbol roi",src);
   //src = cv::imread("../assets/samples/symbols/shape_1.jpg");
       
   cv::cvtColor( src, src_gray, COLOR_RGB2GRAY );
@@ -176,14 +208,16 @@ void LiveSymbolDetector::getSymbol(cv::Mat src, string& shape, string& color)
       
   cv::Canny(dilated, edges_normal, 50, 200, 3 );
 
-  detectSymbol(src, src_thresh, edges_normal, shape, color);
+  Point centroid;
+  centroid  = detectSymbol(src, src_thresh, edges_normal, shape, color);
       
   cv::imshow("src",src);
   cv::imshow("thresh", src_thresh);
   cv::imshow("eroded",eroded);
   cv::imshow("dilated",dilated);
   cv::imshow("edges_normal",edges_normal);
-      
+  cout << "returning from LSD::getSymbol : centroid " << centroid << endl;
+  return centroid;
 }
 
 
@@ -216,25 +250,35 @@ bool LiveSymbolDetector::isPrimaryColor(int blue, int green, int red)
   return ((blue-green>PRIMARY_THRESHOLD && blue-red>PRIMARY_THRESHOLD) || (green-blue>PRIMARY_THRESHOLD && green-red>PRIMARY_THRESHOLD) || (red-blue>PRIMARY_THRESHOLD && red-green>PRIMARY_THRESHOLD));
 }
 
-string LiveSymbolDetector::getColor(int blue, int green, int red)
+string LiveSymbolDetector::getColor(int hue , int val , int sat)
 {
   string color;
-  if(isPrimaryColor(blue,green,red))
-    {
-      if(blue>green && blue>red)
-	color = "BLUE";
-      else if(green>blue && green>red)
-	color = "GREEN";
-      else
-	color = "RED";
-    }
-  else
-    {
-      if(red>200 && green>200)
-	color = "YELLOW";
-      else
-	color = "BROWN";
-    }
+  // if(isPrimaryColor(blue,green,red))
+  //   {
+  //     if(blue>green && blue>red)
+  // 	color = "BLUE";
+  //     else if(green>blue && green>red)
+  // 	color = "GREEN";
+  //     else
+  // 	color = "RED";
+  //   }
+  // else
+  //   {
+  //     if(red>200 && green>200)
+  // 	color = "YELLOW";
+  //     else
+  // 	color = "BROWN";
+  //   }
+
+  if( hue < 20 || hue > 160)
+    color = "RED";
+  else  if( hue > 40 || hue <80)
+    color = "BLUE";
+  else  if( hue < 100 || hue < 140)
+    color = "GREEN";
+      
+      
+      
   return color;
 }
 

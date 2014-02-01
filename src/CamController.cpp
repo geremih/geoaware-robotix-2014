@@ -321,7 +321,7 @@ void removeSymbols(Mat& img){
         if(black > white)
           rectangle(img,  bRect, Scalar(0 ,0 ,0) ,-1 );
         else
-          rectangle(img, bRect , Scalar(161 , 161 , 161) , -1 );
+          rectangle(img, bRect , Scalar(255, 255 , 255) , -1 );
       }
       
     }

@@ -13,7 +13,7 @@
 #define AMT_LANE 3
 #define AMT_TURN 10
 
-#define LANE_FOLLOW_MIN 60
+#define LANE_FOLLOW_MIN 75
 #define TAKE_TUNNEL 1
 #define FOUND_SYMBOL 2
 #define NOT_FOUND_SYMBOL 3
@@ -35,8 +35,8 @@ class Controller
   LiveSymbolDetector symbolDetector;
   Locomotor *locomotor;
   CamController *cam;
-  Controller(string path);
-  static Controller* getInstance(string mappath);
+  Controller(string path , string ACM = "0" , string USB = "0");
+  static Controller* getInstance(string mappath, string ACM = "0" , string USB = "0");
   ~Controller();
   void start();
   void facePassage(string passageDir);
@@ -45,9 +45,9 @@ class Controller
   void mainLoop();
   void moveBot(string dir, int amt);
   bool processPassage(string passageDir);
-  int detectSymbol(string& shape, string& color);
+  int detectSymbol(string& shape, string& color , Point& centroid);
   void selectPath();
-  void followLane(int amount = AMT_LANE);
+  void followLane(int amount = AMT_LANE) ;
   static VideoCapture cap;
   static bool instanceFlag;
   static Controller* single;

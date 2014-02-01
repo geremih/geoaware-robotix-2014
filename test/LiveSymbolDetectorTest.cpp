@@ -284,9 +284,10 @@ int main()
 
   while(true)
     {
-      //cap >> src;
-       src = cv::imread("../assets/samples/symbols/shape_3.jpg");
-      
+      cap >> src;
+      //src = cv::imread("../assets/samples/symbols/shape_3.jpg");
+      Rect roi(0,src.rows/8,src.cols-1,src.rows - src.rows/8);// set the ROI for the image
+      src = src(roi); 
       cv::cvtColor( src, src_gray, COLOR_RGB2GRAY );
       //cv::blur( src_gray, src_gray_smooth, Size( 5, 5 ), Point(-1,-1) );
 
@@ -310,7 +311,7 @@ int main()
       cv::imshow("eroded",eroded);
       cv::imshow("dilated",dilated);
       cv::imshow("edges_normal",edges_normal);
-      if(cv::waitKey(0) == 'q')
+      if(cv::waitKey(33) == 'q')
 	break;
     }
   return 0;

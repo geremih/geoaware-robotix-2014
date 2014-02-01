@@ -16,7 +16,7 @@ class LiveSymbolDetector
 {
  public:
   LiveSymbolDetector();
-  void getSymbol(cv::Mat frame, string& shape, string& color);
+  Point getSymbol(cv::Mat frame, string& shape, string& color);
  private:
   static double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0);
   string vtxToShape(int vtc);
@@ -25,7 +25,7 @@ class LiveSymbolDetector
   void removeDuplicateContours(std::vector<std::vector<cv::Point> >& contours_dupl, std::vector<std::vector<cv::Point> >& contours);
   void cleanEdges(std::vector<cv::Point>& approx, std::vector<cv::Point>& actual);
   void addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& centers, std::vector<float>& radii, std::vector<double>& areas, std::vector<string>& shapes, std::vector<string>& colors, std::vector<cv::Point>& actual);
-  void detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges, string& shape, string& color);
+  Point detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges, string& shape, string& color);
   void customThreshold(cv::Mat& src_color, cv::Mat& dst, int thresh, int maxval);
 };
 

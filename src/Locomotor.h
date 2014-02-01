@@ -32,8 +32,9 @@ class Locomotor
   int getDistanceRight();
   string currentPos;
   //void facePassage(string passageDir);
-  static Locomotor* getInstance();
-  Locomotor();
+  //static Locomotor* getInstance();
+  static Locomotor *getInstance(string ACM = "0" , string USB ="0");
+  Locomotor(string ACM , string USB);
   Locomotor(const Locomotor&);
   ~Locomotor();
   vector<string> windBack(int amt);
