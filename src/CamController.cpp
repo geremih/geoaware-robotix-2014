@@ -370,7 +370,7 @@ float slope( Point p1 , Point p2){
 }
 
 #define HOUGH_VOTE 100
-void CamController::processVideo(Mat image , string type , bool& pLeft , bool& pRight){
+void CamController::processVideo(Mat image , string type , bool& pLeft , bool& pRight , bool & lane){
 
   int houghVote = HOUGH_VOTE;
   int cannyLower = 50;
@@ -528,13 +528,15 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
     pRight = false;
     cout<<"UNKOWN"<<endl;
   }
-  
+
+  lane = foundLane;
 }
 
 void CamController::isPassage(Mat frame , bool& pLeft,bool& pRight){
 
   pLeft = pRight = false;
-  processVideo(frame,"TUNNEL" , pLeft , pRight );
+  bool blank;
+  processVideo(frame,"TUNNEL" , pLeft , pRight , blank );
   //TODO : Better dependency of nDir and pDir
 
 
@@ -543,7 +545,8 @@ void CamController::isPassage(Mat frame , bool& pLeft,bool& pRight){
 string CamController::laneFollowDir(Mat frame){
   bool pLeft , pRight;
   pLeft = pRight = false;
-  processVideo(frame,"LANE" , pLeft , pRight );
+  bool blank;
+  processVideo(frame,"LANE" , pLeft , pRight , blank );
   if(pLeft)
     return "LEFT";
   else if(pRight)

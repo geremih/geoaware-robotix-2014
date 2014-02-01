@@ -20,5 +20,5 @@ camController: CamController.cpp CamTest.cpp Locomotor.cpp
 clean:
 	rm GeoAware Locomotor 
 
-test:
+test:	 CamController.cpp 
 	g++ -g -o Test   Landmark.cpp   CamController.cpp   Map.cpp  MapProcessor.cpp TJunction.cpp Waypoint.cpp LiveSymbolDetector.cpp Locomotor.cpp Controller_test.cpp $(LIBS) -lncurses
