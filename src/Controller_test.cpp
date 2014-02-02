@@ -187,7 +187,7 @@ void Controller::facePassage(string passageDir){
       //moveBot("FORWARD" ,1 );
     }
 
-    moveBot("FORWARD" , 6);
+    moveBot("FORWARD" , 3);
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
     locomotor->goRight(9);
@@ -222,8 +222,8 @@ void Controller::facePassage(string passageDir){
       followLane(1 , blank ,true);
       //      moveBot("FORWARD" ,1 );
     }
-<<<<<<< HEAD
-    moveBot("FORWARD" , 6);
+
+    moveBot("FORWARD" , 3);
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
     locomotor->goLeft(9);
@@ -234,19 +234,7 @@ void Controller::facePassage(string passageDir){
     int foundCount = 0;
     bool foundLane = false;
     for(int k =0 ; k< 12; k++){
-=======
-    cout<<"Starting predefined turn"<<endl;
-    for(int k =0;  k < AMT_TURN;k++)
-      {
-	locomotor->goLeft();
-	bool blank;
-	followLane(1 , blank , false);
-      }
 
-    int foundCount = 0;
-    bool foundLane = false;
-    for(int k =0 ; k< AMT_TURN; k++){
->>>>>>> speedup
       locomotor->goLeft();
       followLane(1 , foundLane , false);
       if(foundLane){
@@ -288,13 +276,9 @@ void Controller::mainLoop()
       
       Point centroid;
       flag = detectSymbolController(shape,color ,centroid);
-<<<<<<< HEAD
       if(distance_front < LANE_FOLLOW_MIN && i++ > 2  && (time(NULL) - lastWPSeen > THRESHOLD_LASTWP))
-=======
-      cout << "lastIndex = " << lastIndex << "path.size : " << path.size() << endl;
-      flag = NOT_FOUND_SYMBOL;
-            if(distance_front < LANE_FOLLOW_MIN && i++ > 2  && time(NULL) - lastWPSeen > THRESHOLD_LASTWP)
->>>>>>> speedup
+
+	
         {
           i=0;
           // reached end of corridor
@@ -374,13 +358,14 @@ void Controller::mainLoop()
 
 void Controller::moveBot(string dir, int amt)
 {
+  
   cout << "moveBot : " << dir << ", " << amt << endl;
   if(dir == "RIGHT")
     locomotor->goRight(amt);
   else if(dir == "LEFT")
     locomotor->goLeft(amt);
   else if(dir == "FORWARD" || dir == "STRAIGHT")
-    locomotor->goForward(amt);
+    locomotor->goForward(2*amt);
   else if(dir == "BACKWARD")
     locomotor->goBackward(amt);
   else if(dir == "UTURN")

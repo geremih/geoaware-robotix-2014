@@ -599,7 +599,7 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
 	    float theta= (hvlines[k])[1]; // second element is angle theta
 
 	    //cout<<"Rho : " << rho <<" Theta: "<< theta<<endl;
-	    if(theta* 180 / PI < 70 || theta* 180 / PI > 100)
+	    if(theta* 180 / PI < 70 || theta* 180 / PI > 110)
 	      continue;
 	    foundHor = true;
 
@@ -656,7 +656,7 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
 	    cout<<"Horizontal line is " << max_theta* 180 / PI << " degrees" << "with max_black = " << max_black <<endl;
     
 	    //if(max_theta* 180 / PI > 95 && max_theta* 180 / PI < 110)
-	    if(max_theta* 180 / PI > 92 && max_theta* 180 / PI < 110)
+	    if(max_theta* 180 / PI > 95 && max_theta* 180 / PI < 110)
 	      {
 		pRight = true;
 		pLeft = false;
@@ -664,7 +664,7 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
 
 	      }
 	    //else if (max_theta* 180 / PI < 85 &&  max_theta* 180 / PI > 70 ){
-	    else if (max_theta* 180 / PI < 88 &&  max_theta* 180 / PI > 70 ){
+	    else if (max_theta* 180 / PI < 85 &&  max_theta* 180 / PI > 70 ){
 	      pLeft = true;
 	      pRight = false;
 	      cout<< "\t\t\t\tLEFT\t\t\t\tHORIZONTAL LINE"<<endl;
