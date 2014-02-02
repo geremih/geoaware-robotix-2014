@@ -8,7 +8,7 @@ VideoCapture  Controller::cap(0);
 
 time_t Controller::lastWPSeen = time(NULL);
 
-#define THRESHOLD_LASTWP 5
+#define THRESHOLD_LASTWP 10
 
 Controller* Controller::getInstance(string path , string ACM , string USB)
 {
@@ -44,9 +44,12 @@ bool Controller::processPassage(string passageDir)
   int flag = -1;
   string orientation_next;
   std::vector<Landmark> newpath;
+
   
-  flag = NOT_FOUND_TUNNEL;
-  
+  //flag = NOT_FOUND_TUNNEL;
+  string shape , color;
+  Point centroid;
+  flag = detectSymbolController(shape,color ,centroid);
   if(flag == FOUND_TUNNEL_AND_TAKE && pathFound)
     {
       // traverse tunnel
@@ -115,8 +118,8 @@ void Controller::turnCorner(string passageDir){
     cout<<"Starting predefined turn"<<endl;
     int foundCount = 0;
     bool foundLane = false;
-    locomotor->goRight(25);
-    for(int k =0 ; k< 25; k++){
+    locomotor->goRight(AMT_TURN /2);
+    for(int k =0 ; k< AMT_TURN /2; k++){
       locomotor->goRight();
       followLane(1 , foundLane , false);
       if(foundLane){
@@ -146,8 +149,8 @@ void Controller::turnCorner(string passageDir){
     cout<<"Starting predefined turn"<<endl;
     //moveBot("BACKWARD" ,15 );
     bool foundLane = false;
-    locomotor->goLeft(25);
-    for(int k =0 ; k< 25; k++){
+    locomotor->goLeft(12);
+    for(int k =0 ; k< 12; k++){
       locomotor->goLeft();
       followLane(1 , foundLane , false);
       if(foundLane){
@@ -185,12 +188,12 @@ void Controller::facePassage(string passageDir){
     
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
-    locomotor->goRight(25);
-    
+    locomotor->goRight(12);
+
 
     int foundCount = 0;
     bool foundLane = false;
-    for(int k =0 ; k< 25; k++){
+    for(int k =0 ; k< 12; k++){
       locomotor->goRight();
       followLane(1 , foundLane , false);
       if(foundLane){
@@ -199,11 +202,8 @@ void Controller::facePassage(string passageDir){
       if(foundCount > 3){
 	cout<<"Found Lane!! Breaking out of turn loop"<<endl;
         break;
-
       }
-      
     }
-
     
   }
   else  if (passageDir == "LEFT"){
@@ -222,13 +222,13 @@ void Controller::facePassage(string passageDir){
 
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
-    locomotor->goLeft(25);
+    locomotor->goLeft(12);
     //Originial
     //locomotor->gradualLeft(300);
     //New
     int foundCount = 0;
     bool foundLane = false;
-    for(int k =0 ; k< 25; k++){
+    for(int k =0 ; k< 12; k++){
       locomotor->goLeft();
       followLane(1 , foundLane , false);
       if(foundLane){
@@ -268,7 +268,9 @@ void Controller::mainLoop()
 
       Point centroid;
       flag = detectSymbolController(shape,color ,centroid);
-      if(distance_front < LANE_FOLLOW_MIN && i++ > 2  && time(NULL) - lastWPSeen > THRESHOLD_LASTWP)
+      cout << "lastIndex = " << lastIndex << "path.size : " << path.size() << endl;
+      flag = NOT_FOUND_SYMBOL;
+            if(distance_front < LANE_FOLLOW_MIN && i++ > 2  && time(NULL) - lastWPSeen > THRESHOLD_LASTWP)
         {
           i=0;
           // reached end of corridor

@@ -11,9 +11,11 @@
 #define MAX_ATTEMPTS 5
 
 #define AMT_LANE 3
-#define AMT_TURN 10
 
-#define LANE_FOLLOW_MIN 75
+//Time taken to take full turn
+#define AMT_TURN 25
+
+#define LANE_FOLLOW_MIN 55 // originally 75
 #define TAKE_TUNNEL 1
 #define FOUND_SYMBOL 2
 #define NOT_FOUND_SYMBOL 3

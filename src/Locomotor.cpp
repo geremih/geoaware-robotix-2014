@@ -7,9 +7,12 @@
 
 
 //in micro seconds 
-#define MOVE_SLEEP_TIME 500000
-#define SERVO_SLEEP_TIME 1000000
-#define PING_WAIT_TIME 50000
+#define MOVE_SLEEP_TIME 10000
+// originall 500000
+#define SERVO_SLEEP_TIME  1000000
+//originailly 1000000
+#define PING_WAIT_TIME   100
+// 50000 originally 1000
 
 #define GRAD_LEFT_TIME 1
 #define GRAD_RIGHT_TIME 1
