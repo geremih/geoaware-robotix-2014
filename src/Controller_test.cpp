@@ -149,8 +149,8 @@ void Controller::turnCorner(string passageDir){
     cout<<"Starting predefined turn"<<endl;
     //moveBot("BACKWARD" ,15 );
     bool foundLane = false;
-    locomotor->goLeft(12);
-    for(int k =0 ; k< 12; k++){
+    locomotor->goLeft(AMT_TURN);
+    for(int k =0 ; k< AMT_TURN; k++){
       locomotor->goLeft();
       followLane(1 , foundLane , false);
       if(foundLane){
@@ -188,12 +188,12 @@ void Controller::facePassage(string passageDir){
     
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
-    locomotor->goRight(12);
+    locomotor->goRight(AMT_TURN);
 
 
     int foundCount = 0;
     bool foundLane = false;
-    for(int k =0 ; k< 12; k++){
+    for(int k =0 ; k< AMT_TURN; k++){
       locomotor->goRight();
       followLane(1 , foundLane , false);
       if(foundLane){
@@ -222,13 +222,13 @@ void Controller::facePassage(string passageDir){
 
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
-    locomotor->goLeft(12);
+    locomotor->goLeft(AMT_TURN);
     //Originial
     //locomotor->gradualLeft(300);
     //New
     int foundCount = 0;
     bool foundLane = false;
-    for(int k =0 ; k< 12; k++){
+    for(int k =0 ; k< AMT_TURN; k++){
       locomotor->goLeft();
       followLane(1 , foundLane , false);
       if(foundLane){
@@ -325,8 +325,6 @@ void Controller::mainLoop()
 	  lastWPSeen = time(NULL);
           continue;
         }
-
-
       
       cout << "lastIndex = " << lastIndex << "path.size : " << path.size() << endl;
       if(lastIndex + 2 < path.size() && path[lastIndex+1].shape == "TJ" && time(NULL) - lastWPSeen > THRESHOLD_LASTWP)

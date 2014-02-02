@@ -506,6 +506,7 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
 
       */
 
+
 #ifdef IMSHOW
       imshow("Personal algo", contoursInv);
 #endif
@@ -649,14 +650,16 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
 	    cout<<"\t\tUSING HORIZONTAL"<<endl;
 	    cout<<"Horizontal line is " << max_theta* 180 / PI << " degrees" <<endl;
     
-	    if(max_theta* 180 / PI > 95 && max_theta* 180 / PI < 110)
+	    //if(max_theta* 180 / PI > 95 && max_theta* 180 / PI < 110)
+	    if(max_theta* 180 / PI > 95 && max_theta* 180 / PI < 100)
 	      {
 		pRight = true;
 		pLeft = false;
 		cout<<"\t\t\t\tRIGHT\t\t\t\tHORIZONTAL "<<endl;
 
 	      }
-	    else if (max_theta* 180 / PI < 85 &&  max_theta* 180 / PI > 70 ){
+	    //else if (max_theta* 180 / PI < 85 &&  max_theta* 180 / PI > 70 ){
+	    else if (max_theta* 180 / PI < 85 &&  max_theta* 180 / PI > 80 ){
 	      pLeft = true;
 	      pRight = false;
 	      cout<< "\t\t\t\tLEFT\t\t\t\tHORIZONTAL LINE"<<endl;
