@@ -19,6 +19,7 @@ class CamController{
   static void isPassage( Mat frame ,bool& pLeft,bool& pRight); 
   static void processVideo(Mat image , string type , bool& pLeft , bool& pRight, bool& lane);
   static void  detectTunnel(vector<Vec6f> segments , bool& pLeft , bool& pRight);
+  static string getColorHSV( int h , int s , int v);
 };
 
 

@@ -7,9 +7,10 @@
 
 
 //in micro seconds 
-#define MOVE_SLEEP_TIME 10000
+#define MOVE_SLEEP_TIME 500000
 #define SERVO_SLEEP_TIME 1000000
 #define PING_WAIT_TIME 50000
+
 #define GRAD_LEFT_TIME 1
 #define GRAD_RIGHT_TIME 1
 #define PATH_HISTORY_SIZE 50
@@ -101,8 +102,8 @@ void Locomotor::goLeft(int amount){
     cout<< "Go Left" << endl;
     addToPathHistory("LEFT");
     writeToLoco('a');
+    usleep(MOVE_SLEEP_TIME); 
   }
-  usleep(MOVE_SLEEP_TIME);
 }
 
 void Locomotor::goRight(int amount){
@@ -110,6 +111,8 @@ void Locomotor::goRight(int amount){
     writeToLoco('d');
     addToPathHistory("RIGHT");
     cout<< "Go Right" << endl;
+    usleep(MOVE_SLEEP_TIME); 
+      
   }
 }
 
@@ -118,9 +121,9 @@ void Locomotor::goForward(int amount){
     cout<< "Go Forward" << endl;
     addToPathHistory("FORWARD");
     writeToLoco('w');
+    usleep(MOVE_SLEEP_TIME); 
   }
 
-  usleep(MOVE_SLEEP_TIME);
 }
 
 void Locomotor::goBackward(int amount){
@@ -128,8 +131,8 @@ void Locomotor::goBackward(int amount){
     cout<< "Go Backward" << endl;
     addToPathHistory("BACKWARD");
     writeToLoco('s');
+    usleep(MOVE_SLEEP_TIME);
   }
-  usleep(MOVE_SLEEP_TIME);
 }
 
 
@@ -137,8 +140,9 @@ void Locomotor::gradualLeft(int amount){
   for(int i =0 ; i< amount;i++){
     cout<< "Grad Left" << endl;
     writeToLoco('z');
+    usleep(MOVE_SLEEP_TIME);
   }
-  usleep(MOVE_SLEEP_TIME);
+
 }
 
 
@@ -148,8 +152,8 @@ void Locomotor::gradualRight(int amount){
   for(int i =0 ; i< amount;i++){
     cout<< "Grad Right" << endl;
     writeToLoco('c');
+    usleep(MOVE_SLEEP_TIME);
   }
-  usleep(MOVE_SLEEP_TIME);
 }
 
 vector<string> Locomotor::windBack(int amt = 5)

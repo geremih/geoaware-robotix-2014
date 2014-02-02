@@ -3,13 +3,15 @@
 // this code is public domain, enjoy!
 
 #include <AFMotor.h>
-
+#define DELAY 25
 AF_DCMotor rmotor(4);
 AF_DCMotor lmotor(3);
 
 
 void setup() {
   Serial.begin(9600);           // set up Serial library at 9600 bps
+  while(Serial.available())
+    Serial.read();
   Serial.println("Starting Arduino");
   // turn on motor
   lmotor.setSpeed(200);
@@ -34,7 +36,7 @@ void goForward(){
   rmotor.setSpeed(255);
   lmotor.setSpeed(255);  
 
-  delay(25);
+  delay(DELAY);
   lmotor.run(RELEASE);
   rmotor.run(RELEASE);
   
@@ -51,7 +53,7 @@ void goBackward(){
   rmotor.setSpeed(255);
   lmotor.setSpeed(255);  
 
-  delay(25);
+  delay(DELAY);
   lmotor.run(RELEASE);
   rmotor.run(RELEASE);
 }
@@ -66,7 +68,7 @@ void goLeft(){
   rmotor.setSpeed(255);
   lmotor.setSpeed(255);  
 
-  delay(25);
+  delay(DELAY);
 
   lmotor.run(RELEASE);
   rmotor.run(RELEASE);
@@ -83,7 +85,7 @@ void gradualLeft(){
   rmotor.setSpeed(255);
   lmotor.setSpeed(150);  
 
-  delay(25);
+  delay(DELAY);
 
   lmotor.run(RELEASE);
   rmotor.run(RELEASE);
@@ -104,7 +106,7 @@ void gradualRight(){
   rmotor.setSpeed(150);
   lmotor.setSpeed(255);  
 
-  delay(25);
+  delay(DELAY);
 
   lmotor.run(RELEASE);
   rmotor.run(RELEASE);
@@ -123,7 +125,7 @@ void goRight(){
   rmotor.setSpeed(255);
   lmotor.setSpeed(255);  
 
-  delay(25);
+  delay(DELAY);
   lmotor.run(RELEASE);
   rmotor.run(RELEASE);
 }

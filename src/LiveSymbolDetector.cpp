@@ -11,14 +11,14 @@ LiveSymbolDetector::LiveSymbolDetector()
 string getColorHSV( int h , int s , int v){
 
   string color = "default";
-  if( s > 40 && v >100){
-    if( h < 20 || h > 340){
+  if( s > 30 &&  v >50 && v< 220){
+    if( h < 30){
       color = "RED";
     }
-    else if( h > 150 && h < 260){
+    else if( h > 192 && h < 240){
       color = "BLUE";
     }
-    else if ( h>100 && h < 140){
+    else if ( h>100 && h < 180){
       color = "GREEN";
     }
   }
@@ -28,7 +28,7 @@ string getColorHSV( int h , int s , int v){
   else if ( v < 50){
     color = "BLACK";
   }
-  cout << "h = " << h << ", s = " << s << ", v = " << v << endl;
+  //cout << "h = " << h << ", s = " << s << ", v = " << v << endl;
   return color;   
 
 }
@@ -40,7 +40,7 @@ void LiveSymbolDetector::addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& 
   double area;
   
   cv::minEnclosingCircle( (Mat)actual, center, radius );
-  cout << "in add shape, center = " << center << endl;
+  //cout << "in add shape, center = " << center << endl;
   area = cv::contourArea(actual);
   string color;
   color = "default";
@@ -175,7 +175,7 @@ Point LiveSymbolDetector::detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat 
     {
       if(areas[i] > areas[s])
 	s = i;
-      cout << "added : center = " << centers[i] <<", radius = " << radii[i] << ", area = " << areas[i] << ", shape = " << shapes[i] << endl;
+      //cout << "added : center = " << centers[i] <<", radius = " << radii[i] << ", area = " << areas[i] << ", shape = " << shapes[i] << endl;
     }
 
   if(centers.size() == 0)
@@ -189,11 +189,11 @@ Point LiveSymbolDetector::detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat 
   // print details of biggest shape
   clr = CV_RGB(rand()%255,rand()%255,rand()%255);
   cv::circle(src, centers[s], radii[s], clr, 2, 8, 0 );
-  cout << "detected : shape = " << shapes[s] << ", color = " << colors[s] << ", area = " << areas[s] << endl;
-  cout << "-------------------" << endl;
+    cout << "detected : shape = " << shapes[s] << ", color = " << colors[s] << ", area = " << areas[s] << endl;
+  //  cout << "-------------------" << endl;
   shape = shapes[s];
   color = colors[s];
-  cout << "returning from LSD detect symbol : " << centers[s] << endl;
+  //  cout << "returning from LSD detect symbol : " << centers[s] << endl;
   return centers[s];
 }
 
@@ -249,13 +249,13 @@ Point LiveSymbolDetector::getSymbol(cv::Mat src, string& shape, string& color)
 
   Point centroid  = detectSymbol(src, src_thresh, edges_normal, shape, color);
   
-  cv::imshow("src",src);
-  cv::imshow("thresh", src_thresh);
-  cv::imshow("eroded",eroded);
-  cv::imshow("dilated",dilated);
-  cv::imshow("edges_normal",edges_normal);
+  //cv::imshow("src",src);
+  // cv::imshow("thresh", src_thresh);
+  // cv::imshow("eroded",eroded);
+  // cv::imshow("dilated",dilated);
+  // cv::imshow("edges_normal",edges_normal);
   
-  cout << "returning from LSD::getSymbol : centroid " << centroid << endl;
+  //cout << "returning from LSD::getSymbol : centroid " << centroid << endl;
   
   return centroid;
 }

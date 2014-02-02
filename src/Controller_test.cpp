@@ -111,17 +111,21 @@ void Controller::turnCorner(string passageDir){
       followLane(1 , blank , true);
       moveBot("FORWARD" ,1 );
     }
-    moveBot("BACKWARD" ,15 );
+    //moveBot("BACKWARD" ,15 );
+    cout<<"Starting predefined turn"<<endl;
     int foundCount = 0;
     bool foundLane = false;
-    for(int k =0 ; k< 50; k++){
+    locomotor->goRight(25);
+    for(int k =0 ; k< 25; k++){
       locomotor->goRight();
       followLane(1 , foundLane , false);
       if(foundLane){
         foundCount++;
       }
-      if(foundCount > 0)
+      if(foundCount > 0){
+		cout<<"Found Lane!! Breaking out of turn loop"<<endl;
         break;
+      }
     }
 
   }
@@ -139,16 +143,18 @@ void Controller::turnCorner(string passageDir){
     }
 
     int foundCount = 0;
-    moveBot("BACKWARD" ,15 );
+    cout<<"Starting predefined turn"<<endl;
+    //moveBot("BACKWARD" ,15 );
     bool foundLane = false;
-    for(int k =0 ; k< 50; k++){
+    locomotor->goLeft();
+    for(int k =0 ; k< 25; k++){
       locomotor->goLeft();
       followLane(1 , foundLane , false);
       if(foundLane){
         foundCount++;
       }
       if(foundCount > 0){
-	
+	cout<<"Found Lane!! Breaking out of turn loop"<<endl;
 	break;
       }
     }
@@ -163,9 +169,8 @@ void Controller::facePassage(string passageDir){
 
   int distance , curr_distance;
   int vote = 0;
-  cout << "facing passage on the " << passageDir << endl;
+  cout << "COMMENCING FACE PASSAGE" << passageDir << endl;
   if (passageDir == "RIGHT"){
-
     while(vote < 3){
       curr_distance = locomotor->getDistanceRight();
       if(curr_distance> LANE_WIDTH)
@@ -177,14 +182,12 @@ void Controller::facePassage(string passageDir){
       followLane(1 , blank , true);
       moveBot("FORWARD" ,1 );
     }
-
-
     
-    moveBot("BACKWARD" ,15 );
-    locomotor->goRight(15);
-    //Originial
-    //locomotor->gradualRight(300);
-    //New
+    //moveBot("BACKWARD" ,15 );
+    cout<<"Starting predefined turn"<<endl;
+    locomotor->goRight(25);
+    
+
     int foundCount = 0;
     bool foundLane = false;
     for(int k =0 ; k< 25; k++){
@@ -193,8 +196,11 @@ void Controller::facePassage(string passageDir){
       if(foundLane){
         foundCount++;
       }
-      if(foundCount > 3)
+      if(foundCount > 3){
+	cout<<"Found Lane!! Breaking out of turn loop"<<endl;
         break;
+
+      }
       
     }
 
@@ -214,8 +220,9 @@ void Controller::facePassage(string passageDir){
       moveBot("FORWARD" ,1 );
     }
 
-    moveBot("BACKWARD" ,15 );
-    locomotor->goLeft(15);
+    //moveBot("BACKWARD" ,15 );
+    cout<<"Starting predefined turn"<<endl;
+    locomotor->goLeft(25);
     //Originial
     //locomotor->gradualLeft(300);
     //New
@@ -227,8 +234,10 @@ void Controller::facePassage(string passageDir){
       if(foundLane){
         foundCount++;
       }
-      if(foundCount > 3)
+      if(foundCount > 3){
+      	cout<<"Found Lane!! Breaking out of turn loop"<<endl;
         break;
+      }
     }
     
 
@@ -334,7 +343,7 @@ void Controller::mainLoop()
 	{
           cout << "\t\tSTILL ROOM, FOLLOWING LANE" << endl;
           bool blank;
-          followLane(6, blank, true);
+          followLane(1, blank, true);
 	}  
     }
 }
@@ -388,7 +397,7 @@ int Controller::detectSymbolController(string& shape, string& color , Point & ce
 }
 
 
-#define CENTROID_OFFSET  120
+#define CENTROID_OFFSET  60
 
 void Controller::followLane(int amount , bool& foundLane , bool pmove)
 {
@@ -403,7 +412,8 @@ void Controller::followLane(int amount , bool& foundLane , bool pmove)
   string shape , color;
   Point centroid;
   
-  int flag = detectSymbolController(shape,color ,centroid);
+  /* FOLLOW SYMBOL
+   int flag = detectSymbolController(shape,color ,centroid);
 
   
   if( flag == FOUND_SYMBOL){
@@ -428,17 +438,17 @@ void Controller::followLane(int amount , bool& foundLane , bool pmove)
       }
 
     cv::circle(frame,centroid,3,CV_RGB(255,0,0) , 2, 8, 0 );
-    cout << "aiming at : " << centroid << ", frame.cols/2 = " << frame.cols/2 << endl;
+    cout << "SYMBOL FOLLOW MODE: aiming at : " << centroid << ", frame.cols/2 = " << frame.cols/2 << endl;
     imshow("frame",frame);
   }
   else {
+FOLLOW SYMBOL END
+  */
     
     for(int j = 0; j<5; j++)
       cap >> frame;
     foundLane = false;
     CamController::processVideo(frame , "LANE" , left , right , foundLane);
-    
-  }
   
   if( left == true )
     {
@@ -455,7 +465,7 @@ void Controller::followLane(int amount , bool& foundLane , bool pmove)
       dir = "STRAIGHT";
     }
   cv::waitKey(20);
-  cout << "\tFOLLOW LANE : moving " << dir << endl;
+  //cout << "\tFOLLOW LANE : moving " << dir << endl;
   if(pmove)
     moveBot(dir, amount);
   //moveBot("FORWARD" ,AMT_LANE);
