@@ -17,7 +17,12 @@ LiveSymbolDetectorTest: LiveSymbolDetectorTest.cpp
 LaneDetect: LaneDetect.cpp 
 	g++ -g $(CFLAGS) -o LaneDetect LaneDetect.cpp $(LIBS)
 
+
 HSVThreshold: HSVThreshold.cpp
 	g++ -g $(CFLAGS) -o HSVThreshold HSVThreshold.cpp $(LIBS)
+
+
+Canny: CannyEdgeTest.cpp
+	g++ -g $(CFLAGS) -o Canny CannyEdgeTest.cpp $(LIBS)
 
 

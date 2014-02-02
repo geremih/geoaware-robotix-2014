@@ -4,7 +4,7 @@ bool Controller::instanceFlag = false;
 
 Controller* Controller::single = NULL;
 
-VideoCapture  Controller::cap(1);
+VideoCapture  Controller::cap(0);
 
 Controller* Controller::getInstance(string path , string ACM , string USB)
 {
@@ -110,13 +110,13 @@ void Controller::turnCorner(string passageDir){
     moveBot("BACKWARD" ,15 );
     int foundCount = 0;
     bool foundLane = false;
-    for(int k =0 ; k< 25; k++){
+    for(int k =0 ; k< 50; k++){
       locomotor->goRight();
       followLane(1 , foundLane , false);
       if(foundLane){
         foundCount++;
       }
-      if(foundCount > 3)
+      if(foundCount > 0)
         break;
     }
 
@@ -137,15 +137,19 @@ void Controller::turnCorner(string passageDir){
     int foundCount = 0;
     moveBot("BACKWARD" ,15 );
     bool foundLane = false;
-    for(int k =0 ; k< 25; k++){
+    for(int k =0 ; k< 50; k++){
       locomotor->goLeft();
       followLane(1 , foundLane , false);
       if(foundLane){
         foundCount++;
       }
-      if(foundCount > 3)
-        break;
+      if(foundCount > 0){
+	
+	break;
+      }
     }
+    waitKey(0);
+    
   }
 
 
@@ -173,20 +177,21 @@ void Controller::facePassage(string passageDir){
 
     
     moveBot("BACKWARD" ,15 );
-    locomotor->gradualRight(150);
+    locomotor->goRight(15);
     //Originial
     //locomotor->gradualRight(300);
     //New
     int foundCount = 0;
     bool foundLane = false;
     for(int k =0 ; k< 25; k++){
-      locomotor->gradualRight();
+      locomotor->goRight();
       followLane(1 , foundLane , false);
       if(foundLane){
         foundCount++;
       }
       if(foundCount > 3)
         break;
+      
     }
 
     
@@ -206,14 +211,14 @@ void Controller::facePassage(string passageDir){
     }
 
     moveBot("BACKWARD" ,15 );
-    locomotor->gradualLeft(150);
+    locomotor->goLeft(15);
     //Originial
     //locomotor->gradualLeft(300);
     //New
     int foundCount = 0;
     bool foundLane = false;
     for(int k =0 ; k< 25; k++){
-      locomotor->gradualLeft();
+      locomotor->goLeft();
       followLane(1 , foundLane , false);
       if(foundLane){
         foundCount++;
@@ -251,7 +256,6 @@ void Controller::mainLoop()
       Point centroid;
       flag = detectSymbolController(shape,color ,centroid);
       if(distance_front < LANE_FOLLOW_MIN && i++ > 2)
-
         {
           i=0;
           // reached end of corridor
@@ -259,7 +263,6 @@ void Controller::mainLoop()
           // 1. end of tunnel
           // 2. corner
           // in case of a T-Junction we would have already turned to face it above
-	  
 
           // reached a corner
           cout << "\t\treached end, turning now" << endl;
@@ -277,7 +280,7 @@ void Controller::mainLoop()
                   orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
                   direction = MapProcessor::getDir(orientation,orientation_next);
                   cout << "found " << shape << ", " << color << " on the " << direction << endl;
-                  facePassage(direction);
+                  turnCorner(direction);
                   orientation = orientation_next;
                   lastIndex++;
                 }
@@ -287,7 +290,7 @@ void Controller::mainLoop()
                   orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
                   direction = MapProcessor::getDir(orientation,orientation_next);
                   cout << "facing passage on the " << direction << endl;
-                  facePassage(direction);
+                  turnCorner(direction);
                   cout << "face passage done" <<endl;
                   orientation = orientation_next;
                   lastIndex++;
@@ -299,7 +302,7 @@ void Controller::mainLoop()
               orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
               direction = MapProcessor::getDir(orientation,orientation_next);
               cout << "facing passage on the " << direction << endl;
-              facePassage(direction);
+              turnCorner(direction);
               cout << "face passage done" <<endl;
               orientation = orientation_next;
               lastIndex++;
@@ -325,7 +328,7 @@ void Controller::mainLoop()
         {
           cout << "\t\tSTILL ROOM, FOLLOWING LANE" << endl;
           bool blank;
-          followLane(3, blank, true);
+          followLane(6, blank, true);
 	  
         }
       
@@ -389,7 +392,6 @@ void Controller::followLane(int amount , bool& foundLane , bool pmove)
   cv::Mat frame;
   bool left ,right;
   cap >> frame;
-  
   string dir;
   int i = 0;
   int nL = 0, nR = 0, nS = 0;

@@ -110,6 +110,33 @@ void cleanEdges(std::vector<cv::Point>& approx, std::vector<cv::Point>& actual)
     actual = approx;
 }
 
+string getColorHSV( int h , int s , int v){
+
+  string color = "default";
+  if( s > 100 && v >50){
+    if( h < 20 || h > 340){
+      color = "RED";
+    }
+    else if( h > 160 && h < 260){
+      color = "BLUE";
+    }
+    else if ( h>90 && h < 140){
+      color = "GREEN";
+    }
+  }
+  else if ( s<  50 && v > 50){
+    color = "WHITE";
+  }
+  else if ( v < 50){
+    color = "BLACK";
+  }
+  cout << "h = " << h << ", s = " << s << ", v = " << v << endl;
+  return color;   
+
+}
+
+
+
 void addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& centers, std::vector<float>& radii, std::vector<double>& areas, std::vector<string>& shapes, std::vector<string>& colors, std::vector<cv::Point>& actual)
 {
   cv::Point2f center;
@@ -118,11 +145,54 @@ void addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& centers, std::vector
   
   cv::minEnclosingCircle( (Mat)actual, center, radius );
   area = cv::contourArea(actual);
-  Vec3b intensity = src_thresh.at<Vec3b>((int)center.y,(int)center.x);
-  int blue = (int)intensity.val[0];
-  int green = (int)intensity.val[1];
-  int red = (int)intensity.val[2];
-  string color = getColor(blue,green,red);
+
+  Mat hsv;
+  cvtColor(src_thresh ,hsv ,CV_BGR2HSV);
+  
+  int blue = 0, red = 0, green = 0, brown = 0, yellow = 0;
+  string color;
+  for(int i=center.x-5; i<center.x+5;++i)
+    {
+      for(int j =center.y-5; j < center.y+5; ++j)
+	{
+
+	  Vec3b intensity = hsv.at<Vec3b>(j,i);
+	  int hue = (int)intensity.val[0];
+	  int sat = (int)intensity.val[1];
+	  int val = (int)intensity.val[2];
+	  color = getColorHSV(hue *2 , val , sat);
+
+	    // Vec3b intensity = src_thresh.at<Vec3b>((int)center.y,(int)center.x);
+	    // int b = (int)intensity.val[0];
+	    // int g = (int)intensity.val[1];
+	    // int r = (int)intensity.val[2];
+	    // color = getColor(b,g,r);
+	    if(color == "BLUE")
+	      ++blue;
+	    if(color == "RED")
+	      ++red;
+	    if(color == "GREEN")
+	      ++green;
+	    if(color == "BROWN")
+	      ++brown;
+	    if(color == "YELLOW")
+	      ++yellow;
+	}
+    }
+
+  if(blue > 50)
+    color = "BLUE";
+  else if(green > 50)
+    color = "GREEN";
+  else if(red> 50)
+    color = "RED";
+  else if(brown > 50)
+    color = "BROWN";
+  else if(yellow > 50)
+    color = "YELLOW";
+  else
+    color = "NONE";
+
   
   centers.push_back(center);
   radii.push_back(radius);
@@ -130,7 +200,6 @@ void addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& centers, std::vector
   shapes.push_back(vtxToShape(actual.size()));
   colors.push_back(color);
 }
-
 void detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges)
 {
   std::vector<std::vector<cv::Point> > contours_dupl;
@@ -169,7 +238,7 @@ void detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges)
       cv::approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, true);
       cleanEdges(approx,actual);
       vtc = actual.size();
-      cout << "approx : " << approx.size() << ", actual : " << actual.size() << endl;
+      //cout << "approx : " << approx.size() << ", actual : " << actual.size() << endl;
       
       for(j=0;j<actual.size();++j)
 	{
@@ -194,7 +263,7 @@ void detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat edges)
 	  // Get the lowest and the highest degree
 	  double mincos = cos.front();
 	  double maxcos = cos.back();
-	  cout << "mincos : " << mincos << ", maxcos : " << maxcos << endl;
+	  //cout << "mincos : " << mincos << ", maxcos : " << maxcos << endl;
 	  // Use the degrees obtained above and the number of vertices
 	  // to determine the shape of the contour
 	  if (vtc == 4 && mincos >= -0.1 && maxcos <= 0.3)
@@ -287,7 +356,7 @@ int main()
       cap >> src;
       
       //src = cv::imread("../assets/samples/symbols/shape_3.jpg");
-      Rect roi(0,src.rows/8,src.cols-1,src.rows - src.rows/8);// set the ROI for the image
+      Rect roi(0,src.rows/6,src.cols-1,src.rows - src.rows/6);// set the ROI for the image
       src = src(roi); 
       cv::cvtColor( src, src_gray, COLOR_RGB2GRAY );
       //cv::blur( src_gray, src_gray_smooth, Size( 5, 5 ), Point(-1,-1) );

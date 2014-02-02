@@ -373,10 +373,10 @@ float slope( Point p1 , Point p2){
 void CamController::processVideo(Mat image , string type , bool& pLeft , bool& pRight , bool & lane){
 
   int houghVote = HOUGH_VOTE;
-  int cannyLower = 50;
-  int cannyHigher = 250;
+  int cannyLower = 100;
+  int cannyHigher = 300;
   Mat gray;
-  removeSymbols(image);
+  //removeSymbols(image);
   cvtColor(image,gray,CV_RGB2GRAY);
   Rect roi(0,image.rows/3,image.cols-1,image.rows - image.rows/3);// set the ROI for the image
   Mat imgROI = gray(roi);
@@ -387,7 +387,7 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
   
   // Canny algorithm
   Mat contours;
-  Canny(imgROI,contours,cannyLower,cannyHigher);
+  Canny(imgROI,contours,cannyLower,cannyHigher,3);
   Mat contoursInv;
   threshold(contours,contoursInv,128,255,THRESH_BINARY_INV);
   
@@ -405,7 +405,7 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
   bool noLane  = false;
   lines.clear();
   segments.clear();
-  for(houghVote = HOUGH_VOTE ; houghVote>= HOUGH_VOTE - 30; houghVote-=5){
+  for(houghVote = HOUGH_VOTE ; houghVote>= HOUGH_VOTE - 30; houghVote-=10){
     
     HoughLines(contours,lines,1,PI/180, houghVote);
 
@@ -443,28 +443,29 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
       return;
     }
 
-#ifdef DEBUG
     cout<<" Trying to detect lanes"<<endl;
-    #endif
     for ( int i =0 ; i< segments.size(); i++)
       for( int j = i+1 ; j <segments.size(); j++){
 #ifdef DEBUG
         cout<< segments[i][5] << " " << segments[j][5] << " sum is " << (segments[i][5] + segments[j][5]) * 180 /PI<<endl;
-	#endif
+#endif
         if( abs ((segments[i][5] + segments[j][5])* 180 /PI - 180 ) < LANE_ANGLE_THRESH)
           {
+	    cout<<"FOUND LANE between segments with theta " << segments[i][5] * 180 /PI << " and " << segments[j][5] * 180 /PI  << endl;
+	    cout<<"SIZE OF SEGMENTS:" <<  cv::norm(cv::Mat(Point(segments[i][0] , segments[i][1])),cv::Mat(Point(segments[i][2] , segments[i][3]))) << " and " <<  cv::norm(cv::Mat(Point(segments[i][0] , segments[i][1])),cv::Mat(Point(segments[i][2] , segments[i][3]))) <<endl;
             seg1 = i;
             seg2 = j;
             foundLane = true;
           }
       }
-
+    cout<<"YOODIE " << foundLane<<endl;
+    
     if(foundLane || (noLane && houghVote ==HOUGH_VOTE))
       break;
     else{
       if(houghVote == HOUGH_VOTE - 30){
         noLane = true;
-        houghVote = HOUGH_VOTE+5;
+        houghVote = HOUGH_VOTE+ 10;
       }
     }
   }
@@ -482,14 +483,14 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
         swap( seg1 , seg2);
       }
     
-    if( segments[seg1][5] * 180/PI +segments[seg2][5] * 180/PI > 190 ){
+    if( segments[seg1][5] * 180/PI +segments[seg2][5] * 180/PI > 195 ){
       pLeft = true;
       pRight = false;
 
       cout<< "LEFT"<<endl;
 
     }
-    else if( segments[seg1][5] * 180/PI + segments[seg2][5] * 180/PI  < 170 ){
+    else if( segments[seg1][5] * 180/PI + segments[seg2][5] * 180/PI  < 165 ){
       pRight = true;
       pLeft = false;
       cout<<"RIGHT"<<endl;
@@ -528,8 +529,9 @@ void CamController::processVideo(Mat image , string type , bool& pLeft , bool& p
     pRight = false;
     cout<<"UNKOWN"<<endl;
   }
-
+  
   lane = foundLane;
+  cout<<"YOODLEE " << foundLane<<endl;
 }
 
 void CamController::isPassage(Mat frame , bool& pLeft,bool& pRight){

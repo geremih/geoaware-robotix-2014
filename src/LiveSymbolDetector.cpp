@@ -127,7 +127,7 @@ Point LiveSymbolDetector::detectSymbol(cv::Mat src, cv::Mat src_thresh, cv::Mat 
       cleanEdges(approx,actual);
       vtc = actual.size();
       
-      if (std::fabs(cv::contourArea(contours[i])) < 100 || !cv::isContourConvex(approx) || vtc<3)
+      if (std::fabs(cv::contourArea(contours[i])) < 1000 || !cv::isContourConvex(approx) || vtc<3)
       	continue;
 
       for(j=0;j<actual.size();++j)
