@@ -506,8 +506,6 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
 
       */
 
-      cout<<"Using hough vote " << houghVote<<endl;
-
 #ifdef IMSHOW
       imshow("Personal algo", contoursInv);
 #endif

@@ -381,7 +381,7 @@ int Controller::detectSymbolController(string& shape, string& color , Point & ce
   Rect roi(0,frame.rows/8,frame.cols-1,frame.rows - frame.rows/8);// set the ROI for the image
   frame = frame(roi); 
   centroid = symbolDetector.getSymbol(frame,currShape,currColor);
-  cout << "centroid in controller, detect symbol : " << centroid << endl;
+  //cout << "centroid in controller, detect symbol : " << centroid << endl;
 
   if((currShape == "CIRCLE" || currShape == "TRIANGLE" || currShape == "SQUARE") && (currColor == "BLUE" || currColor == "RED" || currColor == "GREEN"))
     {
