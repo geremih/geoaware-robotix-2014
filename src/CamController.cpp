@@ -391,23 +391,31 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
       return   atan((p2.y - p1.y)/(p2.x - p1.x)) * 180 / PI;
     }
 
-#define HOUGH_VOTE 70
+#define HOUGH_VOTE 80
     void CamController::processVideo(Mat image , string type , bool& pLeft , bool& pRight , bool & lane){
 
+      pLeft = pRight = false;
       int houghVote = HOUGH_VOTE;
       int cannyLower = 100;
       int cannyHigher = 200;
       Mat gray;
-      bool phorizontalLine = false;
-      cvtColor(image,gray,CV_RGB2GRAY);
-      cv::blur( gray, gray, Size( 5, 5 ), Point(-1,-1) );
-      Rect roi(0,image.rows/3,image.cols-1,image.rows - image.rows/3);// set the ROI for the image
-      Mat imgROI = gray(roi);
 
-  
-      // Canny algorithm
+      cv::Mat kernel = Mat::ones(Size(7, 7), CV_8U);  
+      cv::erode(image,image,kernel);
+
+      cv::dilate(image , image,kernel);
+      
+      cvtColor(image,gray,CV_RGB2GRAY);
+      bool phorizontalLine = false;
+      Mat edges_test;
       Mat contours;
-      Canny(imgROI,contours,cannyLower,cannyHigher,3);
+      cv::blur( gray, gray, Size( 5, 5 ), Point(-1,-1) );
+      Canny(image,contours,cannyLower,cannyHigher,3);
+      Rect roi(0,image.rows/3,image.cols-1,image.rows - image.rows/3);// set the ROI for the image
+      Mat imgROI =gray(roi);
+      contours = contours(roi);
+      cv::imshow("roi", imgROI);
+      // Canny algorithm
       Mat contoursInv;
       threshold(contours,contoursInv,128,255,THRESH_BINARY_INV);
       removeSymbols(image , contours , contoursInv);
@@ -498,11 +506,14 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
 
       */
 
-      cout<<"Using hough vote " << houghVote<<endl;
 
 #ifdef IMSHOW
       imshow("Personal algo", contoursInv);
 #endif
+
+      	    float max_rho;
+	    //Find line with maximum black
+	    float max_theta;
 
       //seg1 is to the left of seg2
       if(segments.size() > 0 && foundLane){
@@ -570,32 +581,44 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
       }
       else if (hvlines.size()!=0)
 	{
-	  cout<<"\t\tUSING HORIZONTAL"<<endl;
+	  bool toomanylines = false;
+	  if(hvlines.size()> 100)
+	    toomanylines = true;
+	    
+	  
+	  
 
 
-	  //Find line with maximum black
-	  float max_theta;
 	  int max_black = 0;
-	  for( int k =0 ; k< hvlines.size(); k++){
-      
-	    if(hvlines[k][1]* 180 / PI < 70 && hvlines[k][1]* 180 / PI > 100)
-	      continue;
-
+	  bool foundHor = false;
+	  for( int k =0 ; k< hvlines.size(); k++ ){
+	    if(toomanylines)
+	      break;
+	    
 	    float rho= (hvlines[k])[0];   // first element is distance rho
 	    float theta= (hvlines[k])[1]; // second element is angle theta
-      
+
+	    //cout<<"Rho : " << rho <<" Theta: "<< theta<<endl;
+	    if(theta* 180 / PI < 70 || theta* 180 / PI > 100)
+	      continue;
+	    foundHor = true;
+
 	    Point pt1(rho/cos(theta),0);        
 	    // point of intersection of the line with last row
 	    Point pt2((rho-contoursInv.rows*sin(theta))/cos(theta),contoursInv.rows);
 
-	    int kernel = 10;
+	    int kernel = 5;
 	    LineIterator lit( contoursInv , pt1 , pt2 );
 	    Point curr_pos;
 
+	    
 
 	    for(int j = 0; j < lit.count; j++, ++lit)
 	      {
 		curr_pos = lit.pos();
+		if(curr_pos.x < image.cols/4 || curr_pos.x > 3 * image.cols/4)
+		  continue;
+
 		bool isBlack = false;
 		int curr_black  = 0;
 		for (int xi = curr_pos.x  - kernel ; xi <= curr_pos.x + kernel ; xi++)
@@ -610,36 +633,52 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
 			}
 		      }
 		  }
-		if( curr_black> max_black)
-		  max_theta = hvlines[j][1];
-
+		if( curr_black> max_black){
+		  max_theta = hvlines[k][1];
+		  max_rho = hvlines[k][0];
+		   max_black = curr_black;
+		}
 	      }
 	  }
 
-	  cout<<"Horizontal line is " << max_theta* 180 / PI << " degrees" <<endl;
-    
-	  if(max_theta* 180 / PI > 92 && max_theta* 180 / PI < 110)
-	    {
-	      pRight = true;
-	      pLeft = false;
-	      cout<<"\t\t\t\tRIGHT\t\t\t\tHORIZONTAL "<<endl;
 
-	    }
-	  else if (max_theta* 180 / PI < 88 &&  max_theta* 180 / PI > 70 ){
-	    pLeft = true;
-	    pRight = false;
-	    cout<< "\t\t\t\tLEFT\t\t\t\tHORIZONTAL LINE"<<endl;
 
-	  }
-	  else
+	  if(max_black < 10)
 	    {
 	      pLeft = false;
 	      pRight = false;
-	      cout<< "\t\t\t\tSTRAIGHT\t\t\t\tHORIZONTAL LINE"<<endl;
+	      cout<<"\t\t\t\tUNKOWN HORIZONTAL "<<endl;
+	      foundHor = false;
 	    }
+	  cout<<"Max black for the current line is "<<max_black <<endl;
+	  if(foundHor){
+	    cout<<"\t\tUSING HORIZONTAL"<<endl;
+	    cout<<"Horizontal line is " << max_theta* 180 / PI << " degrees" << "with max_black = " << max_black <<endl;
+    
+	    //if(max_theta* 180 / PI > 95 && max_theta* 180 / PI < 110)
+	    if(max_theta* 180 / PI > 92 && max_theta* 180 / PI < 110)
+	      {
+		pRight = true;
+		pLeft = false;
+		cout<<"\t\t\t\tRIGHT\t\t\t\tHORIZONTAL "<<endl;
 
-	  phorizontalLine  =true;
+	      }
+	    //else if (max_theta* 180 / PI < 85 &&  max_theta* 180 / PI > 70 ){
+	    else if (max_theta* 180 / PI < 88 &&  max_theta* 180 / PI > 70 ){
+	      pLeft = true;
+	      pRight = false;
+	      cout<< "\t\t\t\tLEFT\t\t\t\tHORIZONTAL LINE"<<endl;
 
+	    }
+	    else
+	      {
+		pLeft = false;
+		pRight = false;
+		cout<< "\t\t\t\tSTRAIGHT\t\t\t\tHORIZONTAL LINE"<<endl;
+	      }
+
+	    phorizontalLine  =true;
+	  }
 	}
       else{
 	pLeft = false;
@@ -648,6 +687,18 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
       }
   
       lane = foundLane || phorizontalLine;
+      if(phorizontalLine)
+	{
+	  float rho = max_rho;
+	  float theta = max_theta;
+	  	Point pt1(rho/cos(theta),0);        
+	// point of intersection of the line with last row
+	Point pt2((rho-gray.rows*sin(theta))/cos(theta),gray.rows);
+	// draw a white line
+	line(contoursInv, pt1, pt2, Scalar(100), 3); 
+
+	imshow("horizontal line" , contoursInv);
+	}
     }
 
     void CamController::isPassage(Mat frame , bool& pLeft,bool& pRight){

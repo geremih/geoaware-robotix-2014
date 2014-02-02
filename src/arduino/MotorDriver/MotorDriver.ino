@@ -3,7 +3,7 @@
 // this code is public domain, enjoy!
 
 #include <AFMotor.h>
-#define DELAY 25
+#define DELAY 35
 AF_DCMotor rmotor(4);
 AF_DCMotor lmotor(3);
 
