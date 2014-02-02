@@ -7,7 +7,7 @@
 
 
 //in micro seconds 
-#define MOVE_SLEEP_TIME 500000
+#define MOVE_SLEEP_TIME 50000
 #define SERVO_SLEEP_TIME 1000000
 #define PING_WAIT_TIME 50000
 

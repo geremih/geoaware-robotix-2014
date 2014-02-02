@@ -8,7 +8,7 @@ VideoCapture  Controller::cap(0);
 
 time_t Controller::lastWPSeen = time(NULL);
 
-#define THRESHOLD_LASTWP 5
+#define THRESHOLD_LASTWP 10
 
 Controller* Controller::getInstance(string path , string ACM , string USB)
 {
@@ -115,8 +115,8 @@ void Controller::turnCorner(string passageDir){
     cout<<"Starting predefined turn"<<endl;
     int foundCount = 0;
     bool foundLane = false;
-    locomotor->goRight(25);
-    for(int k =0 ; k< 25; k++){
+    locomotor->goRight(12);
+    for(int k =0 ; k< 12; k++){
       locomotor->goRight();
       followLane(1 , foundLane , false);
       if(foundLane){
@@ -146,8 +146,8 @@ void Controller::turnCorner(string passageDir){
     cout<<"Starting predefined turn"<<endl;
     //moveBot("BACKWARD" ,15 );
     bool foundLane = false;
-    locomotor->goLeft(25);
-    for(int k =0 ; k< 25; k++){
+    locomotor->goLeft(12);
+    for(int k =0 ; k< 12; k++){
       locomotor->goLeft();
       followLane(1 , foundLane , false);
       if(foundLane){
@@ -185,12 +185,12 @@ void Controller::facePassage(string passageDir){
     
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
-    locomotor->goRight(25);
+    locomotor->goRight(12);
     
 
     int foundCount = 0;
     bool foundLane = false;
-    for(int k =0 ; k< 25; k++){
+    for(int k =0 ; k< 12; k++){
       locomotor->goRight();
       followLane(1 , foundLane , false);
       if(foundLane){
@@ -222,13 +222,13 @@ void Controller::facePassage(string passageDir){
 
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
-    locomotor->goLeft(25);
+    locomotor->goLeft(12);
     //Originial
     //locomotor->gradualLeft(300);
     //New
     int foundCount = 0;
     bool foundLane = false;
-    for(int k =0 ; k< 25; k++){
+    for(int k =0 ; k< 12; k++){
       locomotor->goLeft();
       followLane(1 , foundLane , false);
       if(foundLane){
