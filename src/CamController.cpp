@@ -286,7 +286,7 @@ void drawLineSegments(Mat& ime , vector<Vec6f> segments ,  cv::Scalar color=cv::
 void removeSymbols(Mat& img){
   
   Mat hsv;
-  cvtColor(img ,hsv ,CV_RGB2HSV);
+  cvtColor(img ,hsv ,CV_BGR2HSV);
 
   Mat edges;
   std::vector<std::vector<cv::Point> > contours;
@@ -308,12 +308,12 @@ void removeSymbols(Mat& img){
           int hue = (int)intensity.val[0];
           int sat = (int)intensity.val[1];
           int val = (int)intensity.val[2];
-          if(val > 50)
-            colored++;
+          if(sat< 50 && val > 130)
+            white++;
           else if( val < 50)
             black++;
           else{
-            white++;
+            colored++;
           }
         }
 
