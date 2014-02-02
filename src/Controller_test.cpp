@@ -118,8 +118,13 @@ void Controller::turnCorner(string passageDir){
     cout<<"Starting predefined turn"<<endl;
     int foundCount = 0;
     bool foundLane = false;
-    locomotor->goRight(AMT_TURN /2);
-    for(int k =0 ; k< AMT_TURN /2; k++){
+    for(int k =0 ; k< AMT_TURN; k++){
+      locomotor->goRight();
+      bool blank;
+      followLane(1 , blank ,false);
+    }
+
+    for(int k =0 ; k< AMT_TURN; k++){
       locomotor->goRight();
       followLane(1 , foundLane , false);
       if(foundLane){
@@ -144,12 +149,19 @@ void Controller::turnCorner(string passageDir){
       followLane(1 , blank , true);
       moveBot("FORWARD" ,1 );
     }
-
+    
     int foundCount = 0;
     cout<<"Starting predefined turn"<<endl;
     //moveBot("BACKWARD" ,15 );
     bool foundLane = false;
-    locomotor->goLeft(AMT_TURN);
+
+    
+    for(int k =0 ; k< AMT_TURN; k++){
+      locomotor->goLeft();
+      bool blank;
+      followLane(1 , blank ,false);
+    }
+
     for(int k =0 ; k< AMT_TURN; k++){
       locomotor->goLeft();
       followLane(1 , foundLane , false);
@@ -162,11 +174,7 @@ void Controller::turnCorner(string passageDir){
       }
     }
     //waitKey(0);
-    
   }
-
-
-
 }
 void Controller::facePassage(string passageDir){
 
@@ -188,8 +196,11 @@ void Controller::facePassage(string passageDir){
     
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
-    locomotor->goRight(AMT_TURN);
-
+    for(int k =0 ; k< AMT_TURN; k++){
+      locomotor->goRight();
+      bool blank;
+      followLane(1 , blank ,false);
+    }
 
     int foundCount = 0;
     bool foundLane = false;
@@ -219,13 +230,14 @@ void Controller::facePassage(string passageDir){
       followLane(1 , blank ,true);
       moveBot("FORWARD" ,1 );
     }
-
-    //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
-    locomotor->goLeft(AMT_TURN);
-    //Originial
-    //locomotor->gradualLeft(300);
-    //New
+    for(int k =0;  k < AMT_TURN;k++)
+      {
+	locomotor->goLeft();
+	bool blank;
+	followLane(1 , blank , false);
+      }
+
     int foundCount = 0;
     bool foundLane = false;
     for(int k =0 ; k< AMT_TURN; k++){

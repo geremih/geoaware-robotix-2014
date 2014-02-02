@@ -611,10 +611,14 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
 	    LineIterator lit( contoursInv , pt1 , pt2 );
 	    Point curr_pos;
 
+	    
 
 	    for(int j = 0; j < lit.count; j++, ++lit)
 	      {
 		curr_pos = lit.pos();
+		if(curr_pos.x < image.cols/4 || curr_pos.x > 3 * image.cols/4)
+		  continue;
+
 		bool isBlack = false;
 		int curr_black  = 0;
 		for (int xi = curr_pos.x  - kernel ; xi <= curr_pos.x + kernel ; xi++)
@@ -637,7 +641,7 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
 	      }
 	  }
 
-	  cout<<"Max black for the current line is "<<max_black <<endl;
+
 	  if(max_black < 10)
 	    {
 	      pLeft = false;
@@ -645,13 +649,13 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
 	      cout<<"\t\t\t\tUNKOWN HORIZONTAL "<<endl;
 	      foundHor = false;
 	    }
-
+	  cout<<"Max black for the current line is "<<max_black <<endl;
 	  if(foundHor){
 	    cout<<"\t\tUSING HORIZONTAL"<<endl;
-	    cout<<"Horizontal line is " << max_theta* 180 / PI << " degrees" <<endl;
+	    cout<<"Horizontal line is " << max_theta* 180 / PI << " degrees" << "with max_black = " << max_black <<endl;
     
 	    //if(max_theta* 180 / PI > 95 && max_theta* 180 / PI < 110)
-	    if(max_theta* 180 / PI > 95 && max_theta* 180 / PI < 100)
+	    if(max_theta* 180 / PI > 95 && max_theta* 180 / PI < 105)
 	      {
 		pRight = true;
 		pLeft = false;
@@ -659,7 +663,7 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
 
 	      }
 	    //else if (max_theta* 180 / PI < 85 &&  max_theta* 180 / PI > 70 ){
-	    else if (max_theta* 180 / PI < 85 &&  max_theta* 180 / PI > 80 ){
+	    else if (max_theta* 180 / PI < 85 &&  max_theta* 180 / PI > 75 ){
 	      pLeft = true;
 	      pRight = false;
 	      cout<< "\t\t\t\tLEFT\t\t\t\tHORIZONTAL LINE"<<endl;
