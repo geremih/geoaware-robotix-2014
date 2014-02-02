@@ -398,7 +398,7 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
       int cannyLower = 100;
       int cannyHigher = 200;
       Mat gray;
-
+      bool phorizontalLine = false;
       cvtColor(image,gray,CV_RGB2GRAY);
       cv::blur( gray, gray, Size( 5, 5 ), Point(-1,-1) );
       Rect roi(0,image.rows/3,image.cols-1,image.rows - image.rows/3);// set the ROI for the image
@@ -638,6 +638,8 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
 	      cout<< "\t\t\t\tSTRAIGHT\t\t\t\tHORIZONTAL LINE"<<endl;
 	    }
 
+	  phorizontalLine  =true;
+
 	}
       else{
 	pLeft = false;
@@ -645,7 +647,7 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
 	cout<<"\t\t\t\tUNKOWN"<<endl;
       }
   
-      lane = foundLane;
+      lane = foundLane || phorizontalLine;
     }
 
     void CamController::isPassage(Mat frame , bool& pLeft,bool& pRight){

@@ -146,7 +146,7 @@ void Controller::turnCorner(string passageDir){
     cout<<"Starting predefined turn"<<endl;
     //moveBot("BACKWARD" ,15 );
     bool foundLane = false;
-    locomotor->goLeft();
+    locomotor->goLeft(25);
     for(int k =0 ; k< 25; k++){
       locomotor->goLeft();
       followLane(1 , foundLane , false);
