@@ -109,13 +109,14 @@ void Controller::turnCorner(string passageDir){
         vote--;
       //usleep(50000);
       followLane(1 , blank , true);
-      moveBot("FORWARD" ,1 );
+      //      moveBot("FORWARD" ,1 );
     }
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
     int foundCount = 0;
     bool foundLane = false;
-    locomotor->goRight(12);
+    locomotor->goRight(10);
+    cout<<"Ending predefined turn"<<endl;
     for(int k =0 ; k< 12; k++){
       locomotor->goRight();
       followLane(1 , foundLane , false);
@@ -139,14 +140,16 @@ void Controller::turnCorner(string passageDir){
         vote--;
       //usleep(50000);
       followLane(1 , blank , true);
-      moveBot("FORWARD" ,1 );
+      //      moveBot("FORWARD" ,1 );
     }
 
     int foundCount = 0;
     cout<<"Starting predefined turn"<<endl;
+    
     //moveBot("BACKWARD" ,15 );
     bool foundLane = false;
-    locomotor->goLeft(12);
+    locomotor->goLeft(10);
+    cout<<"Ending predefined turn"<<endl;
     for(int k =0 ; k< 12; k++){
       locomotor->goLeft();
       followLane(1 , foundLane , false);
@@ -180,13 +183,14 @@ void Controller::facePassage(string passageDir){
       //usleep(50000);
       bool blank;
       followLane(1 , blank , true);
-      moveBot("FORWARD" ,1 );
+      //moveBot("FORWARD" ,1 );
     }
-    
+
+    moveBot("FORWARD" , 4);
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
-    locomotor->goRight(12);
-    
+    locomotor->goRight(10);
+    cout<<"Ending predefined turn"<<endl;
 
     int foundCount = 0;
     bool foundLane = false;
@@ -217,12 +221,13 @@ void Controller::facePassage(string passageDir){
       //usleep(50000);
       bool blank;
       followLane(1 , blank ,true);
-      moveBot("FORWARD" ,1 );
+      //      moveBot("FORWARD" ,1 );
     }
-
+    moveBot("FORWARD" , 4);
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
-    locomotor->goLeft(12);
+    locomotor->goLeft(10);
+    cout<<"Ending predefined turn"<<endl;
     //Originial
     //locomotor->gradualLeft(300);
     //New

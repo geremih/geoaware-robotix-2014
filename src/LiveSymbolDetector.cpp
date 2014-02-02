@@ -38,6 +38,7 @@ void LiveSymbolDetector::addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& 
   cv::Point2f center;
   float radius;
   double area;
+
   
   cv::minEnclosingCircle( (Mat)actual, center, radius );
   //cout << "in add shape, center = " << center << endl;
