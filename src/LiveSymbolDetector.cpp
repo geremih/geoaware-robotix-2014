@@ -11,18 +11,18 @@ LiveSymbolDetector::LiveSymbolDetector()
 string getColorHSV( int h , int s , int v){
 
   string color = "default";
-  if( s > 100 && v >100){
+  if( s > 40 && v >100){
     if( h < 20 || h > 340){
       color = "RED";
     }
-    else if( h > 220 && h < 260){
+    else if( h > 150 && h < 260){
       color = "BLUE";
     }
     else if ( h>100 && h < 140){
       color = "GREEN";
     }
   }
-  else if ( s<  50 && v > 50){
+  else if ( s<  50 && v > 150){
     color = "WHITE";
   }
   else if ( v < 50){
@@ -32,6 +32,7 @@ string getColorHSV( int h , int s , int v){
   return color;   
 
 }
+
 void LiveSymbolDetector::addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& centers, std::vector<float>& radii, std::vector<double>& areas, std::vector<string>& shapes, std::vector<string>& colors, std::vector<cv::Point>& actual)
 {
   cv::Point2f center;
@@ -39,43 +40,40 @@ void LiveSymbolDetector::addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& 
   double area;
   
   cv::minEnclosingCircle( (Mat)actual, center, radius );
+  cout << "in add shape, center = " << center << endl;
   area = cv::contourArea(actual);
   string color;
   color = "default";
   Mat hsv;
-  cvtColor(src_thresh ,hsv ,CV_RGB2HSV);
+  cvtColor(src_thresh ,hsv ,CV_BGR2HSV);
   
-  // Vec3b intensity = src_thresh.at<Vec3b>((int)center.y,(int)center.x);
+  Vec3b intensity = src_thresh.at<Vec3b>((int)center.y,(int)center.x);
   
   int blue = 0, green = 0, red = 0, black = 0, white = 0, none = 0;
   for(int i=center.x - 5; i < center.x + 5; ++i)
     {
       for(int j=center.y - 5; j < center.y + 5; ++j)
-	{
-	  // Vec3b intensity = hsv.at<Vec3b>((int)center.y,(int)center.x);
-	  // int hue = (int)intensity.val[0];
-	  // int sat = (int)intensity.val[1];
-	  // int val = (int)intensity.val[2];
-	  // color = getColorHSV(hue , val , sat);
-	   Vec3b intensity = src_thresh.at<Vec3b>((int)center.y,(int)center.x);
-	  int b = (int)intensity.val[0];
-	  int g = (int)intensity.val[1];
-	  int r = (int)intensity.val[2];
-	  color = getColor(b,g,r);
+  	{
+  	  Vec3b intensity = hsv.at<Vec3b>(j , i);
+  	  int hue = (int)intensity.val[0];
+  	  int sat = (int)intensity.val[1];
+  	  int val = (int)intensity.val[2];
+  	  color = getColorHSV(2*hue , sat , val);
 
-	  if(color == "BLUE")
-	    ++blue;
-	  if(color == "GREEN")
-	    ++green;
-	  if(color == "RED")
-	    ++red;
-	  if(color == "WHITE")
-	    ++white;
-	  if(color == "BLACK")
-	    ++black;
-	  if(color == "default")
-	    ++none;
-	}
+
+  	  if(color == "BLUE")
+  	    ++blue;
+  	  if(color == "GREEN")
+  	    ++green;
+  	  if(color == "RED")
+  	    ++red;
+  	  if(color == "WHITE")
+  	    ++white;
+  	  if(color == "BLACK")
+  	    ++black;
+  	  if(color == "default")
+  	    ++none;
+  	}
     }
 
   if(blue > 50)
@@ -89,7 +87,8 @@ void LiveSymbolDetector::addShape(cv::Mat src_thresh, std::vector<cv::Point2f>& 
   else if(white > 50)
     color = "WHITE";
   else if(none > 50)
-    color = "NONE";
+
+  color = "NONE";
   
   centers.push_back(center);
   radii.push_back(radius);
