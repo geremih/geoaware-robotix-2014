@@ -6,6 +6,10 @@ Controller* Controller::single = NULL;
 
 VideoCapture  Controller::cap(0);
 
+time_t Controller::lastWPSeen = time(NULL);
+
+#define THRESHOLD_LASTWP 5
+
 Controller* Controller::getInstance(string path , string ACM , string USB)
 {
   if(!instanceFlag)
@@ -148,7 +152,7 @@ void Controller::turnCorner(string passageDir){
 	break;
       }
     }
-    waitKey(0);
+    //waitKey(0);
     
   }
 
@@ -255,7 +259,7 @@ void Controller::mainLoop()
 
       Point centroid;
       flag = detectSymbolController(shape,color ,centroid);
-      if(distance_front < LANE_FOLLOW_MIN && i++ > 2)
+      if(distance_front < LANE_FOLLOW_MIN && i++ > 2  && time(NULL) - lastWPSeen > THRESHOLD_LASTWP)
         {
           i=0;
           // reached end of corridor
@@ -296,7 +300,7 @@ void Controller::mainLoop()
                   lastIndex++;
                 }
             }
-          else
+          else 
             {
               cout << "didnt detect any symbol" << endl;
               orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
@@ -307,13 +311,14 @@ void Controller::mainLoop()
               orientation = orientation_next;
               lastIndex++;
             }
+	  lastWPSeen = time(NULL);
           continue;
         }
 
 
       
       cout << "lastIndex = " << lastIndex << "path.size : " << path.size() << endl;
-      if(lastIndex + 2 < path.size() && path[lastIndex+1].shape == "TJ")
+      if(lastIndex + 2 < path.size() && path[lastIndex+1].shape == "TJ" && time(NULL) - lastWPSeen > THRESHOLD_LASTWP)
         {
           orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
           direction = MapProcessor::getDir(orientation,orientation_next);
@@ -322,16 +327,15 @@ void Controller::mainLoop()
           facePassage(direction);
           orientation = orientation_next;
           ++lastIndex;
+	  lastWPSeen = time(NULL);
         }
 
-      if(distance_front > LANE_FOLLOW_MIN)
-        {
+      else
+	{
           cout << "\t\tSTILL ROOM, FOLLOWING LANE" << endl;
           bool blank;
           followLane(6, blank, true);
-	  
-        }
-      
+	}  
     }
 }
 

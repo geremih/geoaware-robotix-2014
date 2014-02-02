@@ -7,7 +7,7 @@
 #include "LiveSymbolDetector.h"
 #include "CamController.h"
 #include <vector>
-
+#include <time.h>
 #define MAX_ATTEMPTS 5
 
 #define AMT_LANE 3
@@ -53,6 +53,7 @@ class Controller
   static VideoCapture cap;
   static bool instanceFlag;
   static Controller* single;
+  static time_t lastWPSeen;
 };
 
 #endif
