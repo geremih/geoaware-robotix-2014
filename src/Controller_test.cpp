@@ -101,9 +101,9 @@ void Controller::turnCorner(string passageDir){
   int vote = 0;
   if (passageDir == "RIGHT"){
 
-    while(vote < 3){
+    while(vote < 2){
       curr_distance = locomotor->getDistanceFront();
-      if(curr_distance<  50)
+      if(curr_distance<  45)
         vote++;
       else if(vote>0)
         vote--;
@@ -115,7 +115,7 @@ void Controller::turnCorner(string passageDir){
     cout<<"Starting predefined turn"<<endl;
     int foundCount = 0;
     bool foundLane = false;
-    locomotor->goRight(10);
+    locomotor->goRight(9);
     cout<<"Ending predefined turn"<<endl;
     for(int k =0 ; k< 12; k++){
       locomotor->goRight();
@@ -124,7 +124,7 @@ void Controller::turnCorner(string passageDir){
         foundCount++;
       }
       if(foundCount > 0){
-		cout<<"Found Lane!! Breaking out of turn loop"<<endl;
+	cout<<"Found Lane!! Breaking out of turn loop"<<endl;
         break;
       }
     }
@@ -132,9 +132,9 @@ void Controller::turnCorner(string passageDir){
   }
   else  if (passageDir == "LEFT"){
 
-    while(vote < 3){
+    while(vote < 2){
       curr_distance = locomotor->getDistanceFront();
-      if(curr_distance < 50)
+      if(curr_distance < 45)
         vote++;
       else if(vote>0)
         vote--;
@@ -148,7 +148,7 @@ void Controller::turnCorner(string passageDir){
     
     //moveBot("BACKWARD" ,15 );
     bool foundLane = false;
-    locomotor->goLeft(10);
+    locomotor->goLeft(9);
     cout<<"Ending predefined turn"<<endl;
     for(int k =0 ; k< 12; k++){
       locomotor->goLeft();
@@ -174,7 +174,7 @@ void Controller::facePassage(string passageDir){
   int vote = 0;
   cout << "COMMENCING FACE PASSAGE" << passageDir << endl;
   if (passageDir == "RIGHT"){
-    while(vote < 3){
+    while(vote < 2){
       curr_distance = locomotor->getDistanceRight();
       if(curr_distance> LANE_WIDTH)
         vote++;
@@ -186,10 +186,10 @@ void Controller::facePassage(string passageDir){
       //moveBot("FORWARD" ,1 );
     }
 
-    moveBot("FORWARD" , 4);
+    moveBot("FORWARD" , 6);
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
-    locomotor->goRight(10);
+    locomotor->goRight(9);
     cout<<"Ending predefined turn"<<endl;
 
     int foundCount = 0;
@@ -212,7 +212,7 @@ void Controller::facePassage(string passageDir){
   }
   else  if (passageDir == "LEFT"){
 
-    while(vote < 3){
+    while(vote < 2){
       curr_distance = locomotor->getDistanceLeft();
       if(curr_distance> LANE_WIDTH)
         vote++;
@@ -223,10 +223,10 @@ void Controller::facePassage(string passageDir){
       followLane(1 , blank ,true);
       //      moveBot("FORWARD" ,1 );
     }
-    moveBot("FORWARD" , 4);
+    moveBot("FORWARD" , 6);
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
-    locomotor->goLeft(10);
+    locomotor->goLeft(9);
     cout<<"Ending predefined turn"<<endl;
     //Originial
     //locomotor->gradualLeft(300);
@@ -247,6 +247,7 @@ void Controller::facePassage(string passageDir){
     
 
   }
+  
   cout << "face passage done" << endl;
 }
 
@@ -265,15 +266,16 @@ void Controller::mainLoop()
 
   cout << "in main loop" << endl;
   int i = 0;
+  //  int start = -1;
   while(true)
     {
       distance_front = locomotor->getDistanceFront();
       cout << "DISTANCE_FRONT : " << distance_front << endl;
       cout << "current orientation : " << orientation << endl;
-
+      
       Point centroid;
       flag = detectSymbolController(shape,color ,centroid);
-      if(distance_front < LANE_FOLLOW_MIN && i++ > 2  && time(NULL) - lastWPSeen > THRESHOLD_LASTWP)
+      if(distance_front < LANE_FOLLOW_MIN && i++ > 2  && (time(NULL) - lastWPSeen > THRESHOLD_LASTWP))
         {
           i=0;
           // reached end of corridor
@@ -349,7 +351,7 @@ void Controller::mainLoop()
           cout << "\t\tSTILL ROOM, FOLLOWING LANE" << endl;
           bool blank;
           followLane(1, blank, true);
-	}  
+	}
     }
 }
 

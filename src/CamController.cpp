@@ -616,16 +616,16 @@ vector<Vec6f> getLineSegments( Mat& edgeIm , vector<Vec2f> clines , vector<Vec2f
 	      }
 	  }
 
-	  //cout<<"Horizontal line is " << max_theta* 180 / PI << " degrees" <<endl;
+	  cout<<"Horizontal line is " << max_theta* 180 / PI << " degrees" <<endl;
     
-	  if(max_theta* 180 / PI > 95 && max_theta* 180 / PI < 110)
+	  if(max_theta* 180 / PI > 92 && max_theta* 180 / PI < 110)
 	    {
 	      pRight = true;
 	      pLeft = false;
 	      cout<<"\t\t\t\tRIGHT\t\t\t\tHORIZONTAL "<<endl;
 
 	    }
-	  else if (max_theta* 180 / PI < 85 &&  max_theta* 180 / PI > 70 ){
+	  else if (max_theta* 180 / PI < 88 &&  max_theta* 180 / PI > 70 ){
 	    pLeft = true;
 	    pRight = false;
 	    cout<< "\t\t\t\tLEFT\t\t\t\tHORIZONTAL LINE"<<endl;
