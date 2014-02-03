@@ -350,26 +350,54 @@ void MapProcessor::drawIndices()
 
 bool MapProcessor::isConnected(Landmark l1, Landmark l2)
 {
-  
+  cout << "is connected Landmark: " << l1.centroid << " and " << l2.centroid << endl;
   LineIterator it(m.img_arena, l1.centroid, l2.centroid, 8);
   for(int i = 0; i < it.count; ++i, ++it)
     {
-      Vec3b intensity = m.img_arena.at<Vec3b>(it.pos());
+      Vec3b intensity = m.img_tjs.at<Vec3b>(it.pos());
       int blue = (int)intensity.val[0];
       int green = (int)intensity.val[1];
       int red = (int)intensity.val[2];
       if(blue==0 && green==0 && red==0)
-        return false;
+	{
+	  cout << "false" << endl;
+	  return false;
+	}
       // int intensity = static_cast<int>(m.img_arena.at<uchar>(it.pos()));
       // if(intensity<=10)
       // 	return false;
     }
+  cout << "true" << endl;
+  return true;
+}
+
+
+bool MapProcessor::isConnectedTJpts(Point2f p1, Point2f p2)
+{
+  cout << "is connected TJ pts: " << p1 << " and " << p2 << endl;
+  LineIterator it(m.img_tjs, p1 , p2, 8);
+  for(int i = 0; i < it.count; ++i, ++it)
+    {
+      Vec3b intensity = m.img_tjs.at<Vec3b>(it.pos());
+      int blue = (int)intensity.val[0];
+      int green = (int)intensity.val[1];
+      int red = (int)intensity.val[2];
+      if(blue==0 && green==0 && red==0)
+	{
+	  cout << "false " << endl;
+	  return false;
+	}
+      // int intensity = static_cast<int>(m.img_arena.at<uchar>(it.pos()));
+      // if(intensity<=10)
+      // 	return false;
+    }
+  cout << "true " << endl;
   return true;
 }
 
 bool MapProcessor::isConnected(cv::Point2f p1, cv::Point2f p2)
 {
-  
+  cout << "is connected pts: " << p1 << " and " << p2 << endl;
   LineIterator it(m.img_arena, p1, p2, 8);
   for(int i = 0; i < it.count; ++i, ++it)
     {
@@ -378,8 +406,12 @@ bool MapProcessor::isConnected(cv::Point2f p1, cv::Point2f p2)
       int green = (int)intensity.val[1];
       int red = (int)intensity.val[2];
       if(blue==0 && green==0 && red==0)
-        return false;
+        {
+	  cout << "false" << endl;
+	  return false;
+	}
     }
+  cout << "true" << endl;
   return true;
 }
 
@@ -401,7 +433,7 @@ void MapProcessor::fillAdjMat()
     {
       for(j=0;j<i;++j)
         {
-          if(isConnected(landmarks[i], landmarks[j]))
+          if(isConnectedTJpts(landmarks[i].centroid, landmarks[j].centroid))
             {
               adjMat[i][j] = 1;
               adjMat[j][i] = 1;
@@ -447,7 +479,7 @@ void MapProcessor::fillAllAdjMat (){
     //add tjunctions to adjmatrix
     for(int j =0; j< m.TJs.size() ; j++)
       {
-        if(isConnected(m.TJs[j].centroid , landmarks[i].centroid)){
+        if(isConnected(m.TJs[j].centroid , landmarks[i].centroid)) {
           cadjMat[i][landmarks.size() + j] = 1;
           cadjMat[landmarks.size() + j][i] = 1;
         }

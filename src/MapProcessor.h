@@ -51,6 +51,7 @@ class MapProcessor
   void drawConnections();
   void drawRoute();
   bool isConnected(Landmark l1, Landmark l2);
+  bool isConnectedTJpts(cv::Point2f p1, cv::Point2f p2);
   bool isConnected(cv::Point2f p1, cv::Point2f p2);
   int ** initAdjMat();
   void fillAdjMat();

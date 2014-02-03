@@ -44,6 +44,7 @@ Map::Map(const Map& M)
   img_landmarks = M.img_landmarks.clone();
   img_arena = M.img_arena.clone();
   landmarks = M.landmarks;
+  img_tjs = M.img_tjs;
   TJs = M.TJs;
 }
 
@@ -415,7 +416,7 @@ void Map::drawTJs()
   for(int i=0;i<TJs.size();++i)
     {
       circle(img_waypoints,TJs[i].centroid,7,Scalar(0),-1,8,0);
-      circle(img_tjs,TJs[i].centroid,7,Scalar(0),-1,8,0);
+      circle(img_tjs,TJs[i].centroid,10,Scalar(0),-1,8,0);
     }
 }
 
