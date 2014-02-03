@@ -75,68 +75,28 @@ void Controller::localize()
 	{
 	  bool blank;
 	  followLane(1,blank,true);
-  
-	  // int distance , curr_distance;
-	//   string passageDir ;
-	//   string o1,o2,dir;
-
-	//   for(int i=0;i<mp.paths.size();++i)
-	//     {
-	      
-
-	//     }
-	  
-	//   if (passageDir == "RIGHT"){
-
-	//       curr_distance = locomotor->getDistanceRight();
-	//       if(curr_distance> LANE_WIDTH)
-	// 	vote++;
-	//       else if(vote>0)
-	// 	vote--;
-	//       bool blank;
-	//       followLane(1 , blank , true);
-
-	//   }
-	//   else  if (passageDir == "LEFT"){
-
-
-	//       curr_distance = locomotor->getDistanceLeft();
-	//       if(curr_distance> LANE_WIDTH)
-	// 	vote++;
-	//       else if(vote>0)
-	// 	vote--;
-	//       //usleep(50000);
-	//       bool blank;
-	//       followLane(1 , blank ,true);
-	//       //      moveBot("FORWARD" ,1 );
-
-	//   }
-
-	//   if( vote  >2)
-	//     foundPath = true;
-	  
-	// }
-	}
+ 	}
     }
   int j;
-  for(j =  0; j<mp.paths.size(); ++j)
+  for(j = 0; j<mp.paths.size(); ++j)
     {
       if(mp.paths[j][1].shape == "TJ")
 	{
-	  o1 = MapProcessor::getOrient(mp.paths[j][1],mp.paths[j][2]);
-	  o2 = MapProcessor::getOrient(mp.paths[j][2],mp.paths[j][3]);
-	  dir = MapProcessor::getDir(o1,o2);
-	  if(dir == "STRAIGHT")
-	    continue;
-	  else
-	    {
-	      path = mp.paths[j];
-	      lastIndex = 0; // assume mainloop takes care of the rest
-	      pathFound = true;
-	    }
+	  // o1 = MapProcessor::getOrient(mp.paths[j][1],mp.paths[j][2]);
+	  // o2 = MapProcessor::getOrient(mp.paths[j][2],mp.paths[j][3]);
+	  // dir = MapProcessor::getDir(o1,o2);
+	  // if(dir == "STRAIGHT")
+	  //   continue;
+	  // else
+	  //   {
+	  path = mp.paths[j];
+	  lastIndex = 0; // assume mainloop takes care of the rest
+	  pathFound = true;
+	  return;
+	      // }
 	}
     }
-
+  
   if(pathFound == false)
     {
       path = mp.paths[rand() % mp.paths.size()];
@@ -397,7 +357,8 @@ void Controller::facePassage(string passageDir){
   cout << "face passage done" << endl;
 }
 
-
+// already called localize()
+// initial state : lastIndex = 0, pathFound = true, path is one of the mp.paths
 void Controller::mainLoop()
 {
   int flag = -1;
