@@ -250,12 +250,13 @@ Point LiveSymbolDetector::getSymbol(cv::Mat src, string& shape, string& color)
 
   Point centroid  = detectSymbol(src, src_thresh, edges_normal, shape, color);
   
-  cv::imshow("src",src);
+  /*
   cv::imshow("thresh", src_thresh);
   cv::imshow("eroded",eroded);
   cv::imshow("dilated",dilated);
   cv::imshow("edges_normal",edges_normal);
-  
+  */
+  cv::imshow("src",src);
   //cout << "returning from LSD::getSymbol : centroid " << centroid << endl;
   
   return centroid;

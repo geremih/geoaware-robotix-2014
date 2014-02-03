@@ -9,7 +9,7 @@ VideoCapture  Controller::cap(0);
 time_t Controller::lastWPSeen = time(NULL);
 
 #define LANE_WIDTH 40
-#define THRESHOLD_LASTWP 10
+#define THRESHOLD_LASTWP 5
 
 Controller* Controller::getInstance(string path , string ACM , string USB)
 {
@@ -57,7 +57,14 @@ void Controller::localize()
       if(iters++ > 5)
 	break;
       
-      int flag = detectSymbolController(shape, color, centroid);
+      int flag;
+      int j = 0;
+      while(j++<20)
+	{
+	  flag= detectSymbolController(shape, color, centroid);
+	  if(flag == FOUND_SYMBOL)
+	    break;
+	}
       if(flag == FOUND_SYMBOL)
 	{
 	  for(int i=0;i<mp.paths.size();++i)
@@ -68,6 +75,7 @@ void Controller::localize()
 		  pathFound = true;
 		  lastIndex = 0;
 		  orientation = MapProcessor::getOrient(mp.paths[i][0], mp.paths[i][1]);
+		  cout << "LOCALIZED : path # " << i << endl;
 		  return;
 		}
 	    }
@@ -94,6 +102,7 @@ void Controller::localize()
 	  lastIndex = 0; // assume mainloop takes care of the rest
 	  pathFound = true;
 	  orientation = MapProcessor::getOrient(mp.paths[j][0], mp.paths[j][1]);
+	  cout << "LOCALIZED : path # " << j << endl;
 	  return;
 	      // }
 	}
@@ -101,11 +110,12 @@ void Controller::localize()
   
   if(pathFound == false)
     {
-      int r = rand() & mp.paths.size();
+      int r = rand() % mp.paths.size();
       path = mp.paths[r];
       pathFound = true;
       orientation = MapProcessor::getOrient(mp.paths[r][0], mp.paths[r][1]);
       lastIndex = 0;
+      cout << "LOCALIZED (randomly): path # " << r << endl;
     }
 }
 
@@ -190,7 +200,7 @@ void Controller::turnCorner(string passageDir){
     cout<<"Starting predefined turn"<<endl;
     int foundCount = 0;
     bool foundLane = false;
-    locomotor->goRight(9);
+    locomotor->goRight(12);
     cout<<"Ending predefined turn"<<endl;
     for(int k =0 ; k< 12; k++){
 
@@ -225,7 +235,7 @@ void Controller::turnCorner(string passageDir){
     //moveBot("BACKWARD" ,15 );
     bool foundLane = false;
 
-    locomotor->goLeft(9);
+    locomotor->goLeft(12);
     cout<<"Ending predefined turn"<<endl;
     for(int k =0 ; k< 12; k++){
       locomotor->goLeft();
@@ -246,9 +256,9 @@ void Controller::turnCorner(string passageDir){
       moveBot("UTURN",1);
       int foundCount = 0;
       bool foundLane = false;
-      for(int k =0 ; k< 8; k++){
-	locomotor->goForward();
-	followLane(1 , foundLane , false);
+      for(int k =0 ; k< 5; k++){
+	//locomotor->goForward();
+	followLane(1 , foundLane , true);
 	if(foundLane){
 	  foundCount++;
 	}
@@ -270,7 +280,7 @@ void Controller::facePassage(string passageDir){
   bool TJ_complete = false;
   cout << "COMMENCING FACE PASSAGE" << passageDir << endl;
   if (passageDir == "RIGHT"){
-    while(vote < 2){
+    while(vote < 3){
       curr_distance = locomotor->getDistanceRight();
       if(curr_distance> LANE_WIDTH)
         vote++;
@@ -285,7 +295,7 @@ void Controller::facePassage(string passageDir){
     moveBot("FORWARD" , 3);
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
-    locomotor->goRight(9);
+    locomotor->goRight(11);
     cout<<"Ending predefined turn"<<endl;
 
     int foundCount = 0;
@@ -305,8 +315,8 @@ void Controller::facePassage(string passageDir){
     
   }
   else  if (passageDir == "LEFT"){
-
-    while(vote < 2){
+    cout << "FACING PASSAGE ON THE LEFT" << endl;
+    while(vote < 3){
       curr_distance = locomotor->getDistanceLeft();
       if(curr_distance> LANE_WIDTH)
         vote++;
@@ -321,7 +331,7 @@ void Controller::facePassage(string passageDir){
     moveBot("FORWARD" , 3);
     //moveBot("BACKWARD" ,15 );
     cout<<"Starting predefined turn"<<endl;
-    locomotor->goLeft(9);
+    locomotor->goLeft(11);
     cout<<"Ending predefined turn"<<endl;
     //Originial
     //locomotor->gradualLeft(300);

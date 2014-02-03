@@ -35,7 +35,8 @@ Map::Map(const string path)
   landmarks = getLandmarks();
   img_tjs = img_arena.clone();
   TJs = getTJs();
-  displayMap();
+  //displayMap();
+  //cv::waitKey(0);
 }
 
 Map::Map(const Map& M)
@@ -174,7 +175,7 @@ void Map::cleanEdges(std::vector<cv::Point>& approx, std::vector<cv::Point>& act
 {
   // Number of vertices of polygonal curve (small edges yet to be removed)
   int vtc = approx.size();
-  
+
   if(vtc>=3 && vtc<=6)
     {
       int j = 0;
@@ -191,6 +192,7 @@ void Map::cleanEdges(std::vector<cv::Point>& approx, std::vector<cv::Point>& act
     }
   else
     actual = approx;
+  //cout << "cleaning edges : approx = " << approx << ", actual = " << actual << endl;
 }
 
 void Map::printLandmarks()
@@ -207,7 +209,7 @@ void Map::addLandmark(std::vector<Landmark>& landmarks, std::vector<cv::Point>& 
 {
   cv::Point2f center(0.f,0.f);
   float radius = 0.f;
-  cout << "adding symbol " << symbol << endl;
+  //cout << "adding symbol " << symbol << endl;
   cv::minEnclosingCircle(symbol,center,radius);
   //cv::circle(img_landmarks, center, radius, CV_RGB(100,200,255), 2);
   
@@ -227,6 +229,10 @@ void Map::addLandmark(std::vector<Landmark>& landmarks, std::vector<cv::Point>& 
   if(color=="BROWN")
     end = 1;
   Landmark l(center,shape,color,start,end);
+  if(l.shape == "HEXAGON" && l.color!="RED")
+    l.shape = "TRIANGLE";
+  cout << "adding landmark : " << l << endl;
+  cout << " ---------------" << endl;
   landmarks.push_back(l); 
 }
 
@@ -266,7 +272,9 @@ std::vector<Landmark> Map::getLandmarks()
       cv::drawContours(img_landmarks,contours,i,CV_RGB(255,255,255),2);
       
       // Approximate contour with accuracy proportional to the contour perimeter
+      //ORIGINAL
       cv::approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, true);
+      //cv::approxPolyDP(cv::Mat(contours[i]), approx, cv::arcLength(cv::Mat(contours[i]), true)*0.02, false);
 
       // Skip small or non-convex objects
       /*if (std::fabs(cv::contourArea(contours[i])) < 100 || !cv::isContourConvex(approx))
@@ -303,9 +311,22 @@ std::vector<Landmark> Map::getLandmarks()
 	}
       
       addLandmark(landmarks,actual);
+
+      for(int x = 0; x < actual.size(); ++x)
+	{
+	  Scalar clr = CV_RGB(rand()%255,rand()%255,rand()%255);
+	  circle(img_landmarks, actual[x], 3, clr, 2);
+	}
       actual.clear();
     
     }
+
+  for(int x = 0; x<landmarks.size();++x)
+    {
+      if(landmarks[x].shape == "HEXAGON" && landmarks[x].color!="RED")
+	landmarks[x].shape = "TRIANGLE";
+    }
+  
   return landmarks;
 }
 

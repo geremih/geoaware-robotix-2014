@@ -17,7 +17,7 @@
 #define GRAD_RIGHT_TIME 1
 #define PATH_HISTORY_SIZE 50
 //no of iterations
-#define UTURN_AMOUNT 28
+#define UTURN_AMOUNT 32
 
 #define SERIALIDX_MIN  0
 #define SERIALIDX_MAX  10
@@ -200,22 +200,21 @@ int Locomotor::getDistance(){
     -opost -onlcr -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke
     noflsh -ixon -crtscts");	//Activates the tty connection with the Arduino
   */
-  string cm;	
+  string cm = "0";	
   long int Time = time(NULL);
 
+  while( atoi(cm.c_str()) ==0 || atoi(cm.c_str()) > 3000 ){
   //polling
   dist_arduino_in.clear();	//eof flag won't clear itself
   dist_arduino_out<<"p"<<endl;
   
   usleep(PING_WAIT_TIME);
-  std::ofstream file_out;
-  file_out.open("Dist" , std::ios_base::app);
   dist_arduino_in >>cm;	//will set the          error flag if not ready, will get a number from the Arduino stream if ready
-  file_out<< atoi( cm.c_str())<<endl;
+  }
+  
   cout << atoi(cm.c_str()) << endl;	//Output it to the cout         stream
 
   dist_arduino_in.clear();	//eof flag won't clear itself
-  file_out.close();
   return( atoi(cm.c_str()));
 }
 
