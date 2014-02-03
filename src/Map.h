@@ -17,7 +17,7 @@ class Map
   cv::Mat img_landmarks;
   cv::Mat img_arena;
   cv::Mat img_waypoints;
-  
+  cv::Mat img_tjs;
   std::vector<Landmark> landmarks;
   // made both as landmark for now
   std::vector<Landmark> TJs;

@@ -17,23 +17,25 @@ Map::Map(const string path)
       exit(EXIT_FAILURE);
     }
 
-  cv::Mat kernel = Mat::ones(Size(3, 3), CV_8U);
-  cv::Mat eroded = img_src.clone();
-  cv::erode(img_src,eroded,kernel);
-  cv::Mat dilated = eroded.clone();
-  cv::dilate(eroded,dilated,kernel);
+  // cv::Mat kernel = Mat::ones(Size(3, 3), CV_8U);
+  // cv::Mat eroded = img_src.clone();
+  // cv::erode(img_src,eroded,kernel);
+  // cv::Mat dilated = eroded.clone();
+  // cv::dilate(eroded,dilated,kernel);
   // cv::imshow("src", img_src);
   // cv::imshow("eroded", eroded);
   // cv::imshow("dilated",dilated);
   // cv::waitKey(0);
-  img_src = dilated;
+  // img_src = dilated;
   addBorders(0,0,0);
   img_waypoints = img_src.clone();
   img_landmarks = obtainLandmarksImg();
   img_arena = obtainArenaImg();
   corners = getCorners(img_arena);
   landmarks = getLandmarks();
+  img_tjs = img_arena.clone();
   TJs = getTJs();
+  displayMap();
 }
 
 Map::Map(const Map& M)
@@ -313,6 +315,7 @@ void Map::displayMap()
   cv::imshow("arena",img_arena);
   cv::imshow("landmarks",img_landmarks);
   cv::imshow("waypoints",img_waypoints);
+  cv::imshow("img tjs",img_tjs);
 }
 
 const Map& Map::operator = (const Map& m)
@@ -410,7 +413,10 @@ string Map::convertInt(int number)
 void Map::drawTJs()
 {
   for(int i=0;i<TJs.size();++i)
-    circle(img_waypoints,TJs[i].centroid,5,Scalar(0),2,8,0);
+    {
+      circle(img_waypoints,TJs[i].centroid,7,Scalar(0),-1,8,0);
+      circle(img_tjs,TJs[i].centroid,7,Scalar(0),-1,8,0);
+    }
 }
 
 void Map::removeDuplicateTJpts(std::vector<cv::Point>& TJs_dupl, std::vector<cv::Point>& TJs_unique)

@@ -67,6 +67,7 @@ void Controller::localize()
 		  path = mp.paths[i];
 		  pathFound = true;
 		  lastIndex = 0;
+		  orientation = MapProcessor::getOrient(mp.paths[i][0], mp.paths[i][1]);
 		  return;
 		}
 	    }
@@ -92,6 +93,7 @@ void Controller::localize()
 	  path = mp.paths[j];
 	  lastIndex = 0; // assume mainloop takes care of the rest
 	  pathFound = true;
+	  orientation = MapProcessor::getOrient(mp.paths[j][0], mp.paths[j][1]);
 	  return;
 	      // }
 	}
@@ -99,8 +101,10 @@ void Controller::localize()
   
   if(pathFound == false)
     {
-      path = mp.paths[rand() % mp.paths.size()];
+      int r = rand() & mp.paths.size();
+      path = mp.paths[r];
       pathFound = true;
+      orientation = MapProcessor::getOrient(mp.paths[r][0], mp.paths[r][1]);
       lastIndex = 0;
     }
 }
@@ -236,6 +240,25 @@ void Controller::turnCorner(string passageDir){
     }
     //waitKey(0);
   }
+
+  else if(passageDir == "UTURN")
+    {
+      moveBot("UTURN",1);
+      int foundCount = 0;
+      bool foundLane = false;
+      for(int k =0 ; k< 8; k++){
+	locomotor->goForward();
+	followLane(1 , foundLane , false);
+	if(foundLane){
+	  foundCount++;
+	}
+	if(foundCount > 0){
+	  cout<<"Found Lane!! Breaking out of UTURN turn corner loop"<<endl;
+	  break;
+	}
+      }
+      
+    }
 }
 void Controller::facePassage(string passageDir){
 
@@ -407,7 +430,7 @@ void Controller::mainLoop()
                   // turn in reqd dir and upd orientation
                   orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
                   direction = MapProcessor::getDir(orientation,orientation_next);
-                  cout << "found " << shape << ", " << color << " on the " << direction << endl;
+                  cout << "found " << shape << ", " << color << ", will go " << direction << endl;
                   turnCorner(direction);
                   orientation = orientation_next;
                   lastIndex++;
@@ -417,9 +440,9 @@ void Controller::mainLoop()
                   cout << "Unexpected symbol : found " << shape << ", " << color << " |  expected " << path[lastIndex+1].shape << ", " << path[lastIndex+1].color << endl;
                   orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
                   direction = MapProcessor::getDir(orientation,orientation_next);
-                  cout << "facing passage on the " << direction << endl;
+                  cout << "turning corner " << direction << endl;
                   turnCorner(direction);
-                  cout << "face passage done" <<endl;
+                  cout << "turn corner done" <<endl;
                   orientation = orientation_next;
                   lastIndex++;
                 }
@@ -429,9 +452,9 @@ void Controller::mainLoop()
               cout << "didnt detect any symbol" << endl;
               orientation_next = MapProcessor::getOrient(path[lastIndex+1],path[lastIndex+2]);
               direction = MapProcessor::getDir(orientation,orientation_next);
-              cout << "facing passage on the " << direction << endl;
+              cout << "turning corner " << direction << endl;
               turnCorner(direction);
-              cout << "face passage done" <<endl;
+              cout << "turn corner done" <<endl;
               orientation = orientation_next;
               lastIndex++;
             }

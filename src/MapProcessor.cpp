@@ -12,9 +12,7 @@ MapProcessor::MapProcessor()
 
 MapProcessor::MapProcessor(Map inp_map)
   :  m(inp_map) 
-{
-
-  
+{  
 
   landmarks = inp_map.landmarks;
   size = inp_map.landmarks.size();
@@ -350,8 +348,28 @@ void MapProcessor::drawIndices()
     }
 }
 
+bool MapProcessor::isConnected(Landmark l1, Landmark l2)
+{
+  
+  LineIterator it(m.img_arena, l1.centroid, l2.centroid, 8);
+  for(int i = 0; i < it.count; ++i, ++it)
+    {
+      Vec3b intensity = m.img_arena.at<Vec3b>(it.pos());
+      int blue = (int)intensity.val[0];
+      int green = (int)intensity.val[1];
+      int red = (int)intensity.val[2];
+      if(blue==0 && green==0 && red==0)
+        return false;
+      // int intensity = static_cast<int>(m.img_arena.at<uchar>(it.pos()));
+      // if(intensity<=10)
+      // 	return false;
+    }
+  return true;
+}
+
 bool MapProcessor::isConnected(cv::Point2f p1, cv::Point2f p2)
 {
+  
   LineIterator it(m.img_arena, p1, p2, 8);
   for(int i = 0; i < it.count; ++i, ++it)
     {
@@ -383,7 +401,7 @@ void MapProcessor::fillAdjMat()
     {
       for(j=0;j<i;++j)
         {
-          if(isConnected(landmarks[i].centroid, landmarks[j].centroid))
+          if(isConnected(landmarks[i], landmarks[j]))
             {
               adjMat[i][j] = 1;
               adjMat[j][i] = 1;
@@ -654,8 +672,14 @@ void MapProcessor::drawPath( vector<Landmark> path)
 
   int i,j;
   Scalar clr = CV_RGB(rand()%255 , rand()%255 , rand()%255);
+  cout << "PATH : " ;
   for(i=0;i<path.size()-1;++i)
-    cv::line(img_route,path[i].centroid,path[i+1].centroid,clr,2);
+    {
+      cv::line(img_route,path[i].centroid,path[i+1].centroid,clr,2);
+      cout << path[i];
+      cout << "---------------" << endl;
+    }
+  cout << endl;
   cv::imshow("path",img_route);
 }
 
