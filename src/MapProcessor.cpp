@@ -350,7 +350,7 @@ void MapProcessor::drawIndices()
 
 bool MapProcessor::isConnected(Landmark l1, Landmark l2)
 {
-  cout << "is connected Landmark: " << l1.centroid << " and " << l2.centroid << endl;
+  // cout << "is connected Landmark: " << l1.centroid << " and " << l2.centroid << endl;
   LineIterator it(m.img_arena, l1.centroid, l2.centroid, 8);
   for(int i = 0; i < it.count; ++i, ++it)
     {
@@ -360,21 +360,21 @@ bool MapProcessor::isConnected(Landmark l1, Landmark l2)
       int red = (int)intensity.val[2];
       if(blue==0 && green==0 && red==0)
 	{
-	  cout << "false" << endl;
+	  // cout << "false" << endl;
 	  return false;
 	}
       // int intensity = static_cast<int>(m.img_arena.at<uchar>(it.pos()));
       // if(intensity<=10)
       // 	return false;
     }
-  cout << "true" << endl;
+  // cout << "true" << endl;
   return true;
 }
 
 
 bool MapProcessor::isConnectedTJpts(Point2f p1, Point2f p2)
 {
-  cout << "is connected TJ pts: " << p1 << " and " << p2 << endl;
+  // cout << "is connected TJ pts: " << p1 << " and " << p2 << endl;
   Mat temp = m.img_tjs.clone();
   circle(temp,p1,11, Scalar(255),-1,8,0);
   circle(temp,p2,11, Scalar(255),-1,8,0);
@@ -387,20 +387,20 @@ bool MapProcessor::isConnectedTJpts(Point2f p1, Point2f p2)
       int red = (int)intensity.val[2];
       if(blue==0 && green==0 && red==0)
 	{
-	  cout << "false " << endl;
+	  // cout << "false " << endl;
 	  return false;
 	}
       // int intensity = static_cast<int>(m.img_arena.at<uchar>(it.pos()));
       // if(intensity<=10)
       // 	return false;
     }
-  cout << "true " << endl;
+  // cout << "true " << endl;
   return true;
 }
 
 bool MapProcessor::isConnected(cv::Point2f p1, cv::Point2f p2)
 {
-  cout << "is connected pts: " << p1 << " and " << p2 << endl;
+  // cout << "is connected pts: " << p1 << " and " << p2 << endl;
   LineIterator it(m.img_arena, p1, p2, 8);
   for(int i = 0; i < it.count; ++i, ++it)
     {
@@ -410,11 +410,11 @@ bool MapProcessor::isConnected(cv::Point2f p1, cv::Point2f p2)
       int red = (int)intensity.val[2];
       if(blue==0 && green==0 && red==0)
         {
-	  cout << "false" << endl;
+	  // cout << "false" << endl;
 	  return false;
 	}
     }
-  cout << "true" << endl;
+  // cout << "true" << endl;
   return true;
 }
 
