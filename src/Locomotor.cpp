@@ -17,7 +17,7 @@
 #define GRAD_RIGHT_TIME 1
 #define PATH_HISTORY_SIZE 50
 //no of iterations
-#define UTURN_AMOUNT 157
+#define UTURN_AMOUNT 28
 
 #define SERIALIDX_MIN  0
 #define SERIALIDX_MAX  10
@@ -191,7 +191,6 @@ vector<string> Locomotor::windBack(int amt = 5)
 
 void Locomotor::goUTurn( int amount){
   goRight( UTURN_AMOUNT);
-  sleep(2);
 
 }
 int Locomotor::getDistance(){

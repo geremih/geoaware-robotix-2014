@@ -8,6 +8,7 @@ VideoCapture  Controller::cap(0);
 
 time_t Controller::lastWPSeen = time(NULL);
 
+#define LANE_WIDTH 40
 #define THRESHOLD_LASTWP 10
 
 Controller* Controller::getInstance(string path , string ACM , string USB)
@@ -25,16 +26,123 @@ Controller::Controller(string mappath, string ACM , string USB):
   lastIndex(0), tunnelMode(false), orientation("?"), pathFound(false), m(mappath), mp(m), symbolDetector()
 {
   no_lane_tries = 0;
-  path = mp.paths[0];
-  pathFound = true;
-  orientation = MapProcessor::getOrient(path[0],path[1]);
+  //path = mp.paths[0];
+  pathFound = false;
+  //orientation = MapProcessor::getOrient(path[0],path[1]);
   locomotor = Locomotor::getInstance(ACM , USB);
   //cam = CamController::getInstance();
 }
 
 void Controller::start()
 {
+  localize();
   mainLoop();
+}
+
+Landmark Controller::firstSymbol(std::vector<Landmark> testpath)
+{
+  return testpath[1];  
+}
+
+void Controller::localize()
+{
+  string shape, color;
+  Point centroid;
+  int iters = 0;
+  string o1,o2, dir;
+  while(true)
+    {
+      if(pathFound == true)
+	break;
+      if(iters++ > 5)
+	break;
+      
+      int flag = detectSymbolController(shape, color, centroid);
+      if(flag == FOUND_SYMBOL)
+	{
+	  for(int i=0;i<mp.paths.size();++i)
+	    {
+	      if(shape == firstSymbol(mp.paths[i]).shape && color == firstSymbol(mp.paths[i]).color)
+		{
+		  path = mp.paths[i];
+		  pathFound = true;
+		  lastIndex = 0;
+		  return;
+		}
+	    }
+	}
+      else
+	{
+	  bool blank;
+	  followLane(1,blank,true);
+  
+	  // int distance , curr_distance;
+	//   string passageDir ;
+	//   string o1,o2,dir;
+
+	//   for(int i=0;i<mp.paths.size();++i)
+	//     {
+	      
+
+	//     }
+	  
+	//   if (passageDir == "RIGHT"){
+
+	//       curr_distance = locomotor->getDistanceRight();
+	//       if(curr_distance> LANE_WIDTH)
+	// 	vote++;
+	//       else if(vote>0)
+	// 	vote--;
+	//       bool blank;
+	//       followLane(1 , blank , true);
+
+	//   }
+	//   else  if (passageDir == "LEFT"){
+
+
+	//       curr_distance = locomotor->getDistanceLeft();
+	//       if(curr_distance> LANE_WIDTH)
+	// 	vote++;
+	//       else if(vote>0)
+	// 	vote--;
+	//       //usleep(50000);
+	//       bool blank;
+	//       followLane(1 , blank ,true);
+	//       //      moveBot("FORWARD" ,1 );
+
+	//   }
+
+	//   if( vote  >2)
+	//     foundPath = true;
+	  
+	// }
+	}
+    }
+  int j;
+  for(j =  0; j<mp.paths.size(); ++j)
+    {
+      if(mp.paths[j][1].shape == "TJ")
+	{
+	  o1 = MapProcessor::getOrient(mp.paths[j][1],mp.paths[j][2]);
+	  o2 = MapProcessor::getOrient(mp.paths[j][2],mp.paths[j][3]);
+	  dir = MapProcessor::getDir(o1,o2);
+	  if(dir == "STRAIGHT")
+	    continue;
+	  else
+	    {
+	      path = mp.paths[j];
+	      lastIndex = 0; // assume mainloop takes care of the rest
+	      pathFound = true;
+	    }
+	}
+    }
+
+  if(pathFound == false)
+    {
+      path = mp.paths[rand() % mp.paths.size()];
+      pathFound = true;
+      lastIndex = 0;
+    }
 }
 
 // returns whether turned or not
@@ -95,7 +203,7 @@ bool Controller::processPassage(string passageDir)
 }
 
 
-#define LANE_WIDTH 40
+
 
 void Controller::turnCorner(string passageDir){
 
@@ -172,7 +280,11 @@ void Controller::turnCorner(string passageDir){
 void Controller::facePassage(string passageDir){
 
   int distance , curr_distance;
-  int vote = 0;
+  int vote = 0, vote2 = 0;
+  int curr_distance_left;
+  int curr_distance_right;
+  bool TJ_started = false;
+  bool TJ_complete = false;
   cout << "COMMENCING FACE PASSAGE" << passageDir << endl;
   if (passageDir == "RIGHT"){
     while(vote < 2){
@@ -245,9 +357,42 @@ void Controller::facePassage(string passageDir){
         break;
       }
     }
-    
-
   }
+  
+  else if(passageDir == "STRAIGHT")
+    {
+      while(true){
+	curr_distance_left = locomotor->getDistanceLeft();
+	curr_distance_right = locomotor->getDistanceRight();
+	if(curr_distance_left > LANE_WIDTH || curr_distance_right > LANE_WIDTH)
+	  {
+	    vote++;
+	  }
+	else if(vote>0)
+	  vote--;
+	if(curr_distance_left < LANE_WIDTH && curr_distance_right < LANE_WIDTH && TJ_started == true)
+	  {
+	    vote2++;
+	  }
+	else if(vote2>0)
+	  --vote2;
+	
+	bool blank;
+	followLane(1 , blank ,true);
+
+	if(vote >= 2)
+	  {
+	    TJ_started = true;
+	  }
+	if(vote2 >= 2)
+	  {
+	    TJ_complete = true;
+	    break;
+	  }
+      }
+
+      moveBot("FORWARD" , 2);   
+    }
   
   cout << "face passage done" << endl;
 }
@@ -277,9 +422,8 @@ void Controller::mainLoop()
       Point centroid;
       flag = detectSymbolController(shape,color ,centroid);
       if(distance_front < LANE_FOLLOW_MIN && i++ > 2  && (time(NULL) - lastWPSeen > THRESHOLD_LASTWP))
-
 	
-        {
+	{
           i=0;
           // reached end of corridor
           // Cases :

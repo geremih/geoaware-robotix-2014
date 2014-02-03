@@ -556,8 +556,12 @@ void MapProcessor::shortestPath(){
     //remove the start element
     hexagon_list.pop_front();
   }
-  drawPath( paths[0]);
 
+  for(int i =0 ; i< paths.size(); i++)
+    {
+      drawPath( paths[i]);
+    }
+    cv::waitKey(0);
 }
 
 
@@ -649,10 +653,10 @@ void MapProcessor::drawPath( vector<Landmark> path)
 {
 
   int i,j;
+  Scalar clr = CV_RGB(rand()%255 , rand()%255 , rand()%255);
   for(i=0;i<path.size()-1;++i)
-    cv::line(img_route,path[i].centroid,path[i+1].centroid,CV_RGB(150,50,150),2);
+    cv::line(img_route,path[i].centroid,path[i+1].centroid,clr,2);
   cv::imshow("path",img_route);
-  cv::waitKey(0);
 }
 
 

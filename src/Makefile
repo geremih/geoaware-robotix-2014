@@ -22,3 +22,6 @@ clean:
 
 test:	 CamController.cpp 
 	g++ -g -o Test   Landmark.cpp   CamController.cpp   Map.cpp  MapProcessor.cpp TJunction.cpp Waypoint.cpp LiveSymbolDetector.cpp Locomotor.cpp Controller_test.cpp $(LIBS) -lncurses
+
+symboltest: SymbolDetectorTest.cpp LiveSymbolDetector.cpp LiveSymbolDetector.h
+	g++ -g -o LSD SymbolDetectorTest.cpp LiveSymbolDetector.cpp $(LIBS) 

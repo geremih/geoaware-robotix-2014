@@ -43,6 +43,8 @@ class Controller
   void start();
   void facePassage(string passageDir);
   void turnCorner(string passageDir);
+  void localize();
+  Landmark firstSymbol(std::vector<Landmark> testpath);
  private:
 
   int no_lane_tries;
