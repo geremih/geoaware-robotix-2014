@@ -375,10 +375,13 @@ bool MapProcessor::isConnected(Landmark l1, Landmark l2)
 bool MapProcessor::isConnectedTJpts(Point2f p1, Point2f p2)
 {
   cout << "is connected TJ pts: " << p1 << " and " << p2 << endl;
-  LineIterator it(m.img_tjs, p1 , p2, 8);
+  Mat temp = m.img_tjs.clone();
+  circle(temp,p1,11, Scalar(255),-1,8,0);
+  circle(temp,p2,11, Scalar(255),-1,8,0);
+  LineIterator it(temp, p1 , p2, 8);
   for(int i = 0; i < it.count; ++i, ++it)
     {
-      Vec3b intensity = m.img_tjs.at<Vec3b>(it.pos());
+      Vec3b intensity = temp.at<Vec3b>(it.pos());
       int blue = (int)intensity.val[0];
       int green = (int)intensity.val[1];
       int red = (int)intensity.val[2];
@@ -479,7 +482,7 @@ void MapProcessor::fillAllAdjMat (){
     //add tjunctions to adjmatrix
     for(int j =0; j< m.TJs.size() ; j++)
       {
-        if(isConnected(m.TJs[j].centroid , landmarks[i].centroid)) {
+        if(isConnectedTJpts(m.TJs[j].centroid , landmarks[i].centroid)) {
           cadjMat[i][landmarks.size() + j] = 1;
           cadjMat[landmarks.size() + j][i] = 1;
         }
@@ -492,7 +495,7 @@ void MapProcessor::fillAllAdjMat (){
         
   for(int i =0 ; i< m.TJs.size(); i++){
     for(int j =0 ; j< m.TJs.size(); j++){
-      if(isConnected(m.TJs[j].centroid , m.TJs[i].centroid)){
+      if(isConnectedTJpts(m.TJs[j].centroid , m.TJs[i].centroid)){
         cadjMat[landmarks.size() +i][landmarks.size() + j] = 1;
         cadjMat[landmarks.size() + j][landmarks.size() + i] = 1;
       }
