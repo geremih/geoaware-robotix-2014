@@ -1,7 +1,5 @@
-#Geoaware
 
 Our solution for the GeoAware event in Robotix, Kshitij 2014 : www.robotix.in/events/event/geoaware
-
 
 ##Installation
 
